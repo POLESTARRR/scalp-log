@@ -287,12 +287,48 @@ input::placeholder,textarea::placeholder{ color:var(--ink-45); }
 }
 .tier-title{ font-size:20px; flex:1; min-width:140px; }
 .tier-intro{ margin-top:14px; color:var(--ink-60); font-size:14px; }
+.tier-count{ margin-top:10px; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--sage); }
+.tier.is-exhausted{ opacity:.72; }
+
 .tier-list{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
-.tier-list li{
+.tier-list strong{ font-weight:900; }
+
+.step{
+  display:flex; align-items:flex-start; gap:12px;
   padding:12px 14px; border-radius:var(--r-sm);
   background:var(--shell); font-size:13.5px; line-height:1.55;
+  cursor:pointer; transition:background .18s ease;
+  border:1px solid transparent;
 }
-.tier-list strong{ font-weight:900; }
+.step:hover{ background:var(--sage-20); }
+.step-text{ flex:1; }
+.step-mark{
+  flex:none; min-width:34px; padding:2px 8px; border-radius:99px;
+  font-size:9.5px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+  text-align:center; line-height:18px;
+  background:var(--white); border:1px solid var(--sage-40); color:var(--sage);
+}
+.step.is-failed{ opacity:.55; }
+.step.is-failed .step-text{ text-decoration:line-through; text-decoration-thickness:1px; }
+.step.is-failed .step-mark{ background:var(--sage-40); border-color:transparent; color:var(--charcoal); }
+.step.is-current{ background:var(--red-10); border-color:var(--red); }
+.step.is-current .step-mark{ background:var(--red); border-color:var(--red); color:var(--white); }
+
+.rx{
+  display:inline-block; margin-left:4px; padding:1px 7px; border-radius:99px;
+  font-size:9.5px; font-weight:900; letter-spacing:.06em;
+  background:var(--charcoal); color:var(--white); vertical-align:1px;
+}
+
+.ladder-summary{
+  background:var(--charcoal); color:var(--white);
+  border-radius:var(--r-lg); padding:22px 24px; margin-bottom:14px;
+}
+.ls-bar{ height:8px; border-radius:99px; background:rgba(255,255,255,.16); overflow:hidden; }
+.ls-bar span{ display:block; height:100%; border-radius:99px; background:var(--red); transition:width .3s ease; }
+.ls-line{ margin-top:14px; font-size:14.5px; line-height:1.5; }
+.ls-line strong{ font-weight:900; }
+.ls-sub{ margin-top:8px; font-size:12px; color:var(--sage); line-height:1.5; }
 .tier-note{
   margin-top:14px; padding:12px 14px; border-radius:var(--r-sm);
   background:var(--sage-20); font-size:12.5px; line-height:1.55; color:var(--charcoal);

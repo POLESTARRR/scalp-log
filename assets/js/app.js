@@ -1,10 +1,25 @@
 (function () {
   'use strict';
 
-  var STORE = { entries: 'scalplog.entries', routine: 'scalplog.routine' };
+  var STORE = {
+    entries:  'scalplog.entries',
+    routine:  'scalplog.routine',
+    progress: 'scalplog.progress',
+    seeded:   'scalplog.seeded'
+  };
 
   var entries = read(STORE.entries, []);
   var routine = read(STORE.routine, {});
+  var progress = read(STORE.progress, {});
+
+  /* First run only: mark the treatments already known to have failed, so the
+     ladder opens on what is left instead of asking you to retype your history. */
+  if (!read(STORE.seeded, false)) {
+    PRESEED_FAILED.forEach(function (id) { progress[id] = 'failed'; });
+    write(STORE.progress, progress);
+    write(STORE.seeded, true);
+  }
+
   var selectedDay = today();
 
   function read(key, fallback) {
@@ -292,20 +307,65 @@
      Ladder
   ------------------------------------------------------------------ */
 
+  var CYCLE = ['none', 'failed', 'current'];
+
+  function allItems() {
+    return LADDER.reduce(function (acc, rung) { return acc.concat(rung.items); }, []);
+  }
+
+  function statusOf(id) { return progress[id] || 'none'; }
+
+  function cycleStatus(id) {
+    var next = CYCLE[(CYCLE.indexOf(statusOf(id)) + 1) % CYCLE.length];
+    if (next === 'none') delete progress[id];
+    else progress[id] = next;
+    write(STORE.progress, progress);
+    renderLadder();
+  }
+
   function renderLadder() {
-    $('#ladderList').innerHTML = LADDER.map(function (rung) {
-      return '<article class="tier">' +
+    var items = allItems();
+    var tried = items.filter(function (i) { return statusOf(i.id) !== 'none'; });
+    var next = items.filter(function (i) { return statusOf(i.id) === 'none'; })[0];
+    var using = items.filter(function (i) { return statusOf(i.id) === 'current'; });
+
+    var summary = '<div class="ladder-summary">' +
+      '<div class="ls-bar"><span style="width:' + Math.round(tried.length / items.length * 100) + '%"></span></div>' +
+      '<p class="ls-line"><strong>' + tried.length + ' of ' + items.length + '</strong> worked through. ' +
+        (next
+          ? 'Next untried: <strong>' + stripTags(next.text).split('.')[0] + '</strong>.'
+          : 'Nothing left unmarked on this ladder.') +
+      '</p>' +
+      (using.length ? '<p class="ls-sub">Currently using ' + using.length + '.</p>' : '') +
+      '<p class="ls-sub">Tap any line to cycle it: not tried → didn’t work → using now.</p>' +
+    '</div>';
+
+    $('#ladderList').innerHTML = summary + LADDER.map(function (rung) {
+      var done = rung.items.filter(function (i) { return statusOf(i.id) !== 'none'; }).length;
+      var exhausted = done === rung.items.length;
+
+      return '<article class="tier' + (exhausted ? ' is-exhausted' : '') + '">' +
         '<div class="tier-head">' +
           '<span class="tier-no">' + rung.tier + '</span>' +
           '<h3 class="tier-title">' + esc(rung.title) + '</h3>' +
           '<span class="tag' + (rung.hot ? ' is-new' : '') + '">' + esc(rung.tag) + '</span>' +
         '</div>' +
+        '<p class="tier-count">' + done + ' of ' + rung.items.length + ' marked</p>' +
         (rung.intro ? '<p class="tier-intro">' + rung.intro + '</p>' : '') +
-        '<ul class="tier-list">' + rung.items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>' +
+        '<ul class="tier-list">' + rung.items.map(function (item) {
+          var st = statusOf(item.id);
+          return '<li class="step is-' + st + '" data-step="' + item.id + '" role="button" tabindex="0">' +
+            '<span class="step-mark">' + STATUS[st].short + '</span>' +
+            '<span class="step-text">' + item.text +
+              (item.rx ? ' <span class="rx">Rx</span>' : '') + '</span>' +
+          '</li>';
+        }).join('') + '</ul>' +
         (rung.note ? '<p class="tier-note">' + rung.note + '</p>' : '') +
       '</article>';
     }).join('');
   }
+
+  function stripTags(html) { return html.replace(/<[^>]*>/g, ''); }
 
   /* ------------------------------------------------------------------
      Ingredient scan
@@ -879,6 +939,16 @@
       write(STORE.entries, entries);
       renderAll();
       toast('Entry removed');
+    });
+
+    $('#ladderList').addEventListener('click', function (e) {
+      var step = e.target.closest('[data-step]');
+      if (step) cycleStatus(step.dataset.step);
+    });
+    $('#ladderList').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var step = e.target.closest('[data-step]');
+      if (step) { e.preventDefault(); cycleStatus(step.dataset.step); }
     });
 
     $('#scanBtn').addEventListener('click', renderScan);

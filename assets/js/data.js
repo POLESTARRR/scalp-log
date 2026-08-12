@@ -226,53 +226,63 @@ const CATEGORIES = {
   irritant:    { label:'Irritant risk',     flag:false }
 };
 
+/* Every item carries an id so its status can be tracked. `rx` marks the ones
+   that need a prescriber — the ladder is only useful if it is obvious which
+   rungs you can reach alone and which need someone to write them down. */
 const LADDER = [
   {
     tier:'0', title:'Technique, before anything stronger',
     tag:'Established', hot:false,
     intro:'Worth exhausting first, because it costs nothing and it quietly explains a share of cases that look resistant.',
     items:[
-      'Three to five minutes of contact time, worked into the <strong>scalp</strong> rather than the hair. A lather-and-rinse delivers almost nothing.',
-      'Two or three washes a week during a flare, tapering to weekly once it settles.',
-      'Rotate two unrelated actives rather than running one to failure — an azole one wash, zinc pyrithione or selenium the next.',
-      'The same antifungal shampoo works on facial seb derm: two to three minutes, then rinse. Same mechanism, unfamiliar real estate.',
-      'Barrier cream afterwards. Look for <strong>ceramide, cholesterol and fatty acid together</strong>, ideally near a 3:1:1 ratio — one or two of the three alone measurably slows recovery.'
+      { id:'t0-contact', text:'Three to five minutes of contact time, worked into the <strong>scalp</strong> rather than the hair. A lather-and-rinse delivers almost nothing.' },
+      { id:'t0-freq',    text:'Two or three washes a week during a flare, tapering to weekly once it settles.' },
+      { id:'t0-rotate',  text:'Rotate two unrelated actives rather than running one to failure — an azole one wash, zinc pyrithione or selenium the next.' },
+      { id:'t0-face',    text:'The same antifungal shampoo works on facial seb derm: two to three minutes, then rinse. Same mechanism, unfamiliar real estate.' },
+      { id:'t0-barrier', text:'Barrier cream afterwards. Look for <strong>ceramide, cholesterol and fatty acid together</strong>, ideally near a 3:1:1 ratio — one or two of the three alone measurably slows recovery.' }
     ],
     note:'Do not stack irritants. Tar plus salicylic acid plus a strong azole adds barrier damage without adding yeast control.'
   },
   {
     tier:'1', title:'Over the counter',
     tag:'Established', hot:false,
-    intro:'The shelf you have probably already worked through: ketoconazole 1–2%, zinc pyrithione, selenium sulfide, coal tar, salicylic acid, ciclopirox.',
+    intro:'The shelf most people work through first.',
     items:[
-      '<strong>Selenium disulfide</strong> is singled out in recent guidance as unusually versatile — antifungal, sebum-reducing and keratolytic at once.',
-      '<strong>Piroctone olamine</strong> and <strong>climbazole</strong> are common in Europe and scarce in the US. Different mechanism, so azole resistance does not transfer.'
+      { id:'t1-keto',    text:'<strong>Ketoconazole</strong> 1–2% shampoo.' },
+      { id:'t1-zpt',     text:'<strong>Zinc pyrithione</strong>.' },
+      { id:'t1-selenium',text:'<strong>Selenium sulfide / disulfide</strong> — singled out in recent guidance as unusually versatile: antifungal, sebum-reducing and keratolytic at once.' },
+      { id:'t1-tar',     text:'<strong>Coal tar</strong>.' },
+      { id:'t1-sal',     text:'<strong>Salicylic acid</strong> — keratolytic, so it clears the scale rather than killing the yeast.' },
+      { id:'t1-ciclo',   text:'<strong>Ciclopirox</strong> — not an azole. Works by iron chelation, so azole resistance does not carry over.' },
+      { id:'t1-piroc',   text:'<strong>Piroctone olamine</strong> — non-azole, common in Europe, scarce in the US. Genuinely different mechanism and easy to have missed.' },
+      { id:'t1-climb',   text:'<strong>Climbazole</strong> — azole class but structurally distinct from ketoconazole.' },
+      { id:'t1-sulfur',  text:'<strong>Sulfur + salicylic acid bar</strong> — drying, but a common last stop before prescriptions.' }
     ],
-    note:''
+    note:'Do not stack multiple irritant actives at once. That adds barrier damage without adding yeast control.'
   },
   {
     tier:'2', title:'Prescription topical',
-    tag:'FDA approved', hot:false,
+    tag:'Needs a prescriber', hot:false,
     intro:'',
     items:[
-      'Ketoconazole 2%, or prescription-strength ciclopirox.',
-      'Steroids matched to site and potency: <strong>desonide 0.05%</strong> (low) on the face, <strong>fluocinolone acetonide 0.01%</strong> oil (medium) on the scalp. Flares only — continuous use thins skin.',
-      '<strong>Tacrolimus 0.1%</strong> or <strong>pimecrolimus 1%</strong> for face and eyelids, where long-term steroids are a bad trade. A studied pattern: twice daily up to four weeks to clear, then twice weekly for twenty weeks to hold.',
-      '<strong>Roflumilast foam 0.3%</strong>, a PDE4 inhibitor approved for seb derm in December 2023. Phase III trials put roughly 80% of patients clear or almost clear at one year, with itch relief sustained across 52 weeks.',
-      '<strong>Lithium succinate or gluconate</strong> — an older seb-derm-specific option that still appears in guidance and almost never gets offered.'
+      { id:'t2-keto2',   rx:true, text:'Ketoconazole 2% or prescription-strength ciclopirox.' },
+      { id:'t2-steroid', rx:true, text:'Steroids matched to site and potency: <strong>desonide 0.05%</strong> (low) on the face, <strong>fluocinolone acetonide 0.01%</strong> oil (medium) on the scalp. Flares only — continuous use thins skin.' },
+      { id:'t2-calci',   rx:true, text:'<strong>Tacrolimus 0.1%</strong> or <strong>pimecrolimus 1%</strong> for face and eyelids, where long-term steroids are a bad trade. Studied pattern: twice daily up to four weeks to clear, then twice weekly for twenty weeks to hold.' },
+      { id:'t2-roflu',   rx:true, text:'<strong>Roflumilast foam 0.3%</strong>, a PDE4 inhibitor approved for seb derm in December 2023. Phase III put roughly 80% of patients clear or almost clear at one year, with itch relief sustained across 52 weeks.' },
+      { id:'t2-lithium', rx:true, text:'<strong>Lithium succinate or gluconate</strong> — an older seb-derm-specific option that still appears in guidance and almost never gets offered.' }
     ],
     note:''
   },
   {
     tier:'3', title:'Oral and systemic',
-    tag:'Prescriber-led', hot:false,
-    intro:'This is the rung most people never reach, usually because nobody offered it.',
+    tag:'Needs a prescriber', hot:false,
+    intro:'The rung most people never reach, usually because nobody offered it.',
     items:[
-      'Pulse-dose <strong>itraconazole</strong> — a common protocol is 200mg daily for the first week of each month. Trials report around 90% improvement at four months with lower recurrence than topicals alone.',
-      '<strong>Fluconazole</strong>, either 50mg daily for two weeks or 200–300mg weekly.',
-      '<strong>Low-dose isotretinoin</strong>, 10–20mg, studied specifically in refractory disease. Head-to-head data favours 20mg for control and recurrence. Needs monitoring.',
-      'Tetracycline-class antibiotics, used for the anti-inflammatory effect rather than the antibacterial one.',
-      'Narrowband UVB phototherapy.'
+      { id:'t3-itra',  rx:true, text:'Pulse-dose <strong>itraconazole</strong> — commonly 200mg daily for the first week of each month. Trials report around 90% improvement at four months with lower recurrence than topicals alone.' },
+      { id:'t3-fluc',  rx:true, text:'<strong>Fluconazole</strong>, either 50mg daily for two weeks or 200–300mg weekly.' },
+      { id:'t3-iso',   rx:true, text:'<strong>Low-dose isotretinoin</strong>, 10–20mg, studied specifically in refractory disease. Head-to-head data favours 20mg for control and recurrence. Needs monitoring.' },
+      { id:'t3-tetra', rx:true, text:'Tetracycline-class antibiotics, used for the anti-inflammatory effect rather than the antibacterial one.' },
+      { id:'t3-uvb',   rx:true, text:'Narrowband UVB phototherapy.' }
     ],
     note:''
   },
@@ -281,9 +291,9 @@ const LADDER = [
     tag:'Case-report level', hot:false,
     intro:'Conversation territory with a dermatologist who follows the literature — not self-directed experimentation.',
     items:[
-      '<strong>Topical ruxolitinib</strong>, a JAK inhibitor, with case reports of clearing facial disease that had failed everything else.',
-      '<strong>Crisaborole</strong> and <strong>apremilast</strong>, two more PDE4 inhibitors under investigation.',
-      '<strong><em>Lactobacillus paracasei</em></strong> supplementation — one double-blind trial found reduced erythema, seborrhea and flaking over 56 days.'
+      { id:'t4-ruxo',  rx:true, text:'<strong>Topical ruxolitinib</strong>, a JAK inhibitor, with case reports of clearing facial disease that had failed everything else.' },
+      { id:'t4-pde4',  rx:true, text:'<strong>Crisaborole</strong> and <strong>apremilast</strong>, two more PDE4 inhibitors under investigation.' },
+      { id:'t4-probio',         text:'<strong><em>Lactobacillus paracasei</em></strong> supplementation — one double-blind trial found reduced erythema, seborrhea and flaking over 56 days.' }
     ],
     note:''
   },
@@ -292,13 +302,24 @@ const LADDER = [
     tag:'New — Feb 2026', hot:true,
     intro:'Works upstream of the entire ladder. Rather than fighting the yeast or calming inflammation, it selectively heats and shrinks the sebaceous glands that produce the oil the yeast lives on, while a cooling tip protects the surface.',
     items:[
-      'The published case: a 32-year-old with a <strong>five-year refractory scalp history</strong> that had not responded to conventional treatment.',
-      'Three sessions, two weeks apart.',
-      'Complete clearance, still holding at six-month follow-up.'
+      { id:'t5-laser', rx:true, text:'Three sessions, two weeks apart. The published case was a 32-year-old with a <strong>five-year refractory scalp history</strong> that had failed conventional treatment — complete clearance, still holding at six-month follow-up.' }
     ],
-    note:'One case report, not a trial. But the literature did not exist a year ago, which means you may well hear about it before your dermatologist does.'
+    note:'One case report, not a trial. But this literature did not exist a year ago, which means you may well hear about it before your dermatologist does.'
   }
 ];
+
+/* Seeded on first run from what has already been tried and failed, so the
+   ladder opens showing what is left rather than what is known. */
+const PRESEED_FAILED = [
+  't1-keto', 't1-zpt', 't1-tar', 't1-sal', 't1-ciclo', 't1-climb',
+  't2-keto2', 't3-itra', 't3-fluc'
+];
+
+const STATUS = {
+  none:    { label:'Not tried',  short:'Try' },
+  failed:  { label:'Didn’t work', short:'No' },
+  current: { label:'Using now',  short:'Now' }
+};
 
 const ROUTINE = [
   { id:'wash',  icon:'drop',   title:'Medicated wash', detail:'Three to five minutes on the scalp, not the hair' },
