@@ -237,19 +237,47 @@
      Ingredient scan
   ------------------------------------------------------------------ */
 
-  /* Longest match wins, so "Caprylic/Capric Triglyceride" isn't also
-     reported as a bare match on something shorter it contains. */
+  /* INCI lists are ordered by concentration until the 1% mark, after which
+     order is arbitrary. So position is real information: coconut oil second
+     on the list is a different product from coconut oil twenty-second. We
+     tokenise rather than searching the raw string so we can keep it. */
+  function tokenize(text) {
+    return text
+      .split(/[,;\n\r•·|]+/)
+      .map(function (t) { return t.trim(); })
+      .filter(function (t) { return t.length > 1; });
+  }
+
+  /* Longest match wins, so "Caprylic/Capric Triglyceride" is not also
+     reported as a bare hit on something shorter that it contains. */
   function scan(text) {
-    var haystack = text.toLowerCase();
-    var hits = INGREDIENTS.filter(function (ing) {
-      return haystack.indexOf(ing.name.toLowerCase()) !== -1;
+    var tokens = tokenize(text);
+    var found = {};
+
+    tokens.forEach(function (token, index) {
+      var lower = token.toLowerCase();
+      var matches = INGREDIENTS.filter(function (ing) {
+        return lower.indexOf(ing.name.toLowerCase()) !== -1;
+      });
+      if (!matches.length) return;
+
+      matches.sort(function (a, b) { return b.name.length - a.name.length; });
+      var best = matches[0];
+      if (!found[best.name]) {
+        found[best.name] = { ing: best, position: index + 1, total: tokens.length };
+      }
     });
 
-    return hits.filter(function (ing) {
-      return !hits.some(function (other) {
-        return other !== ing && other.name.toLowerCase().indexOf(ing.name.toLowerCase()) !== -1;
-      });
-    });
+    return Object.keys(found).map(function (k) { return found[k]; })
+      .sort(function (a, b) { return a.position - b.position; });
+  }
+
+  /* Above roughly the first third of a list you are usually still in the
+     part ordered by concentration. Past that, everything is likely under 1%. */
+  function weight(hit) {
+    if (hit.position <= 5) return 'high';
+    if (hit.position <= Math.ceil(hit.total / 2)) return 'mid';
+    return 'low';
   }
 
   function renderScan() {
@@ -260,24 +288,29 @@
 
     var hits = scan(text);
     var grouped = {};
-    hits.forEach(function (ing) { (grouped[ing.cat] = grouped[ing.cat] || []).push(ing); });
+    hits.forEach(function (hit) { (grouped[hit.ing.cat] = grouped[hit.ing.cat] || []).push(hit); });
 
     var feeders = grouped.feeder || [];
     var conditional = grouped.conditional || [];
     var actives = grouped.active || [];
+    var topFeeders = feeders.filter(function (h) { return weight(h) === 'high'; });
 
     var verdict = $('#scanVerdict');
     verdict.className = 'verdict';
 
-    if (feeders.length) {
+    if (topFeeders.length) {
       verdict.classList.add('is-bad');
-      verdict.textContent = feeders.length === 1
-        ? 'One ingredient here feeds Malassezia. If this product sits on skin rather than rinsing off, that is a plausible reason it stopped working.'
-        : feeders.length + ' ingredients here feed Malassezia. If this product sits on skin rather than rinsing off, that is a plausible reason it stopped working.';
+      verdict.textContent = topFeeders[0].ing.name + ' is ingredient ' + topFeeders[0].position +
+        ' of ' + topFeeders[0].total + ' here. That high up the list it is a major part of the formula, ' +
+        'and it feeds the yeast you are treating.';
+    } else if (feeders.length) {
+      verdict.classList.add('is-bad');
+      verdict.textContent = (feeders.length === 1 ? 'One ingredient here feeds' : feeders.length + ' ingredients here feed') +
+        ' Malassezia, though all of them sit low on the list — likely under 1% each. Worth knowing, not necessarily worth binning.';
     } else if (conditional.length) {
       verdict.classList.add('is-ok');
       verdict.textContent = 'Nothing confirmed as a feeder, but ' + conditional.length +
-        ' ingredient' + (conditional.length > 1 ? 's depend' : ' depends') + ' on how it was made. Read the notes below before trusting it.';
+        ' ingredient' + (conditional.length > 1 ? 's depend' : ' depends') + ' on how it was made. Read the notes before trusting it.';
     } else if (actives.length) {
       verdict.classList.add('is-ok');
       verdict.textContent = 'Active antifungal present and no feeders detected. This one is doing its job on paper.';
@@ -295,11 +328,19 @@
       return '<section class="group">' +
         '<div class="group-head"><p class="label">' + meta.label + '</p>' +
         '<span class="group-count">' + grouped[cat].length + '</span></div>' +
-        '<div class="hits">' + grouped[cat].map(function (ing) {
-          return '<span class="hit' + (meta.flag ? ' is-flag' : '') + '" title="' + esc(ing.note) + '">' +
-            esc(ing.name) + '</span>';
+        '<div class="hits">' + grouped[cat].map(function (hit) {
+          return '<span class="hit' + (meta.flag ? ' is-flag' : '') + ' w-' + weight(hit) +
+            '" title="' + esc(hit.ing.note) + '">' + esc(hit.ing.name) +
+            '<b class="hit-pos">' + hit.position + '</b></span>';
         }).join('') + '</div></section>';
     }).join('');
+
+    if (hits.length) {
+      $('#scanGroups').insertAdjacentHTML('beforeend',
+        '<p class="fineprint">Numbers are the position on the label. Ingredient lists run in ' +
+        'descending order of concentration until the 1% mark, after which order means nothing — ' +
+        'so something in the first five is doing real work, and something near the end may be a trace.</p>');
+    }
 
     box.hidden = false;
   }

@@ -322,11 +322,26 @@ input::placeholder,textarea::placeholder{ color:var(--ink-45); }
 .group-count{ font-size:12px; font-weight:900; color:var(--sage); }
 .hits{ display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
 .hit{
+  display:inline-flex; align-items:center; gap:7px;
   font-size:12.5px; font-weight:700;
-  padding:6px 12px; border-radius:99px;
+  padding:6px 8px 6px 12px; border-radius:99px;
   background:var(--shell); border:1px solid var(--sage-30);
 }
 .hit.is-flag{ background:var(--red-10); border-color:transparent; color:var(--red); }
+
+/* Position on the label. Bolder ring the higher up the list it sits. */
+.hit-pos{
+  min-width:20px; padding:0 5px; border-radius:99px;
+  font-size:10.5px; font-weight:900; line-height:18px; text-align:center;
+  background:var(--sage-30); color:var(--charcoal);
+}
+.hit.is-flag .hit-pos{ background:var(--red); color:var(--white); }
+.hit.w-low{ opacity:.62; }
+
+.fineprint{
+  margin-top:4px; padding:0 4px;
+  font-size:12px; line-height:1.6; color:var(--ink-45);
+}
 
 .ref{ padding:14px 4px; border-top:1px solid var(--sage-30); }
 .ref:first-child{ border-top:0; }
