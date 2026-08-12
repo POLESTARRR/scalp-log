@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scalp Log</title>
+<meta name="description" content="A private log for treatment-resistant seborrheic dermatitis. Track flares, check product ingredients against Malassezia, and find your own patterns.">
+<meta name="theme-color" content="#eeebe3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23171e19'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ca0013'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ================= HEADER ================= -->
+  <header class="app-header">
+    <div>
+      <p class="label" id="headerDate">—</p>
+      <h1 class="greeting" id="headerGreeting">Hello</h1>
+    </div>
+    <button class="avatar" id="streakBtn" type="button" aria-label="Tracking streak">
+      <span class="avatar-inner" id="streakCount">0</span>
+      <span class="avatar-badge" id="streakBadge" hidden></span>
+    </button>
+  </header>
+
+  <!-- ================= VIEW: TODAY ================= -->
+  <main class="view is-active" id="view-today">
+
+    <nav class="daystrip" id="dayStrip" aria-label="Recent days"></nav>
+
+    <section class="hero" id="heroCard">
+      <span class="hero-blob" aria-hidden="true"></span>
+
+      <div class="hero-top">
+        <div class="icon-tile" id="heroIcon"></div>
+        <span class="pill" id="heroPill">Not logged</span>
+      </div>
+
+      <h2 class="hero-title" id="heroTitle">No entry for this day</h2>
+      <p class="hero-sub" id="heroSub">Tap the red button below to log how your scalp is doing.</p>
+
+      <div class="bento" id="heroBento"></div>
+
+      <div class="notice" id="heroNotice"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h3 class="block-title">Daily routine</h3>
+        <span class="label" id="routineProgress">0 of 4</span>
+      </div>
+      <ul class="feed" id="routineList"></ul>
+    </section>
+
+  </main>
+
+  <!-- ================= VIEW: PLAN ================= -->
+  <main class="view" id="view-plan">
+    <section class="intro">
+      <p class="label">Escalation path</p>
+      <h2 class="view-title">The ladder</h2>
+      <p class="view-lede">Most people cycle inside Tier&nbsp;1 for years because that is what a pharmacy stocks.
+        From Tier&nbsp;2 upward you need a prescriber — the point of listing it all is so you can ask for a rung by
+        name instead of waiting to be offered it.</p>
+    </section>
+    <div id="ladderList"></div>
+    <p class="disclaimer">Reference notes, not medical advice. Doses and potencies are taken from published
+      dermatology literature so you can raise them with a clinician — not so you can self-prescribe.</p>
+  </main>
+
+  <!-- ================= VIEW: SCAN ================= -->
+  <main class="view" id="view-scan">
+    <section class="intro">
+      <p class="label">Ingredient check</p>
+      <h2 class="view-title">Scan a label</h2>
+      <p class="view-lede"><em>Malassezia</em> feeds on fatty acids roughly C11–C24. A conditioner built on coconut
+        oil or shea butter can quietly feed the same yeast your shampoo is trying to kill. Paste any ingredient
+        list — it never leaves this device.</p>
+    </section>
+
+    <div class="card">
+      <label class="label" for="scanInput">Ingredients, as printed on the label</label>
+      <textarea id="scanInput" rows="5" placeholder="Water, Cocamidopropyl Betaine, Zinc Pyrithione, Glycerin, Coconut Oil, Fragrance…"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="scanBtn" type="button">Check this product</button>
+        <button class="btn btn-ghost" id="scanClear" type="button">Clear</button>
+      </div>
+    </div>
+
+    <div id="scanResult" hidden>
+      <div class="verdict" id="scanVerdict"></div>
+      <div id="scanGroups"></div>
+    </div>
+
+    <section class="block">
+      <div class="block-head">
+        <h3 class="block-title">Reference</h3>
+        <span class="label" id="refCount"></span>
+      </div>
+      <input class="search" id="refSearch" type="search" placeholder="Search — try MCT, coconut, squalane…" aria-label="Search ingredients">
+      <div id="refList"></div>
+    </section>
+  </main>
+
+  <!-- ================= VIEW: TRENDS ================= -->
+  <main class="view" id="view-trends">
+    <section class="intro">
+      <p class="label">Your data</p>
+      <h2 class="view-title">Trends</h2>
+      <p class="view-lede">Descriptive statistics from your own log. Correlation, not proof — but it is the
+        difference between telling a dermatologist "I've tried everything" and showing them what actually moved.</p>
+    </section>
+
+    <div class="card chart-card">
+      <div class="block-head">
+        <h3 class="block-title">Severity</h3>
+        <span class="label">Last 30 entries</span>
+      </div>
+      <div class="chart-wrap">
+        <p class="empty" id="chartEmpty">Nothing logged yet. The line starts after your first entry.</p>
+        <svg id="chart" viewBox="0 0 320 150" preserveAspectRatio="none" hidden></svg>
+      </div>
+    </div>
+
+    <div id="patterns"></div>
+
+    <section class="block">
+      <div class="block-head">
+        <h3 class="block-title">History</h3>
+        <span class="label" id="historyCount"></span>
+      </div>
+      <ul class="feed" id="historyList"></ul>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="exportBtn" type="button">Export CSV</button>
+        <button class="btn btn-danger" id="wipeBtn" type="button">Delete all data</button>
+      </div>
+      <p class="disclaimer">Everything lives in this browser's local storage. Clearing site data or switching
+        devices loses it, so export before you migrate.</p>
+    </section>
+  </main>
+
+  <!-- ================= LOG SHEET ================= -->
+  <div class="scrim" id="scrim" hidden></div>
+  <section class="sheet" id="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="sheetTitle">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <h2 id="sheetTitle">Log today</h2>
+      <button class="icon-btn" id="sheetClose" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="field">
+        <label class="label" for="fDate">Date</label>
+        <input type="date" id="fDate">
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="label">Flaking &amp; redness</span>
+          <output class="readout" id="outSeverity">5</output>
+        </div>
+        <input type="range" id="fSeverity" min="0" max="10" value="5">
+        <div class="scale"><span>Clear</span><span>Severe</span></div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="label">Itch</span>
+          <output class="readout" id="outItch">5</output>
+        </div>
+        <input type="range" id="fItch" min="0" max="10" value="5">
+        <div class="scale"><span>None</span><span>Constant</span></div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="fProduct">Product used</label>
+        <input type="text" id="fProduct" placeholder="Ketoconazole 2%" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <span class="label">Anything unusual today</span>
+        <div class="chips" id="fTriggers"></div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="fNotes">Notes</label>
+        <textarea id="fNotes" rows="2" placeholder="Skipped a wash, new product, stressful week…"></textarea>
+      </div>
+    </div>
+
+    <div class="sheet-foot">
+      <button class="btn btn-primary btn-block" id="saveEntry" type="button">Save entry</button>
+    </div>
+  </section>
+
+  <!-- ================= NAV ================= -->
+  <nav class="tabbar" aria-label="Main">
+    <button class="tab is-active" data-view="today" type="button"><span class="tab-ico" data-ico="home"></span><span class="tab-txt">Today</span></button>
+    <button class="tab" data-view="plan" type="button"><span class="tab-ico" data-ico="steps"></span><span class="tab-txt">Plan</span></button>
+    <button class="fab" id="fab" type="button" aria-label="Log an entry"><span data-ico="plus"></span></button>
+    <button class="tab" data-view="scan" type="button"><span class="tab-ico" data-ico="scan"></span><span class="tab-txt">Scan</span></button>
+    <button class="tab" data-view="trends" type="button"><span class="tab-ico" data-ico="chart"></span><span class="tab-txt">Trends</span></button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
