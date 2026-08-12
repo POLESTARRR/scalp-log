@@ -130,6 +130,16 @@
 
     <div id="patterns"></div>
 
+    <section class="block" id="photoBlock" hidden>
+      <div class="block-head">
+        <h3 class="block-title">Progress photos</h3>
+        <span class="label" id="photoCount"></span>
+      </div>
+      <div class="filmstrip" id="filmstrip"></div>
+      <p class="fineprint">Oldest first. Skin changes too slowly to notice day to day, which is exactly
+        what a photo is for.</p>
+    </section>
+
     <section class="block">
       <div class="block-head">
         <h3 class="block-title">History</h3>
@@ -180,12 +190,28 @@
 
       <div class="field">
         <label class="label" for="fProduct">Product used</label>
-        <input type="text" id="fProduct" placeholder="Ketoconazole 2%" autocomplete="off">
+        <input type="text" id="fProduct" list="productList" placeholder="Start typing, or pick one" autocomplete="off">
+        <datalist id="productList"></datalist>
+        <div class="quickpicks" id="quickPicks"></div>
       </div>
 
       <div class="field">
-        <span class="label">Anything unusual today</span>
-        <div class="chips" id="fTriggers"></div>
+        <span class="label">Photo</span>
+        <div class="photo-field">
+          <div class="photo-slot" id="photoSlot">
+            <span class="photo-hint">Same spot, same light, once a week beats daily guesswork.</span>
+          </div>
+          <div class="btn-row">
+            <label class="btn btn-ghost" for="fPhoto">Add photo</label>
+            <input type="file" id="fPhoto" accept="image/*" capture="environment" hidden>
+            <button class="btn btn-danger" id="dropPhoto" type="button" hidden>Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="label">What else was going on</span>
+        <div id="fTriggers"></div>
       </div>
 
       <div class="field">
@@ -207,6 +233,12 @@
     <button class="tab" data-view="scan" type="button"><span class="tab-ico" data-ico="scan"></span><span class="tab-txt">Scan</span></button>
     <button class="tab" data-view="trends" type="button"><span class="tab-ico" data-ico="chart"></span><span class="tab-txt">Trends</span></button>
   </nav>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close photo">&times;</button>
+    <img id="lightboxImg" alt="Progress photo">
+    <p class="lightbox-cap" id="lightboxCap"></p>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 

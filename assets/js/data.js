@@ -307,7 +307,40 @@ const ROUTINE = [
   { id:'log',   icon:'pen',    title:'Log the day', detail:'Sixty seconds now beats guessing in six months' }
 ];
 
-const TRIGGERS = ['Stress','Poor sleep','Sugar','Alcohol','Dairy','Sweat','Cold weather','Missed a wash','New product'];
+/* Grouped rather than a flat list, because the groups are the hypotheses:
+   diet, body, environment, routine. The correlation engine still sees a
+   flat array of whatever was ticked. */
+const TRIGGER_GROUPS = [
+  { label:'Diet',        items:['Sugar','Dairy','Alcohol','Gluten','Fried food','Caffeine'] },
+  { label:'Body',        items:['Stress','Poor sleep','Illness','Hormonal'] },
+  { label:'Environment', items:['Sweat','Cold weather','Humidity','Sun','Hard water'] },
+  { label:'Routine',     items:['Missed a wash','New product','Skipped moisturiser','Wore a hat'] }
+];
+
+/* Seeds the product field so a regimen is one tap rather than retyping a
+   drug name every day. The user's own past entries get merged in on top. */
+const PRODUCT_PRESETS = [
+  'Ketoconazole 2%',
+  'Ketoconazole 1%',
+  'Zinc pyrithione',
+  'Selenium sulfide',
+  'Ciclopirox 1%',
+  'Coal tar',
+  'Salicylic acid',
+  'Piroctone olamine',
+  'Climbazole',
+  'Sulfur + salicylic acid bar',
+  'Roflumilast foam 0.3%',
+  'Tacrolimus 0.1%',
+  'Pimecrolimus 1%',
+  'Desonide 0.05%',
+  'Fluocinolone scalp oil',
+  'Itraconazole (oral)',
+  'Fluconazole (oral)',
+  'Isotretinoin (oral)',
+  'Barrier cream only',
+  'Nothing today'
+];
 
 const ICONS = {
   home:   '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',

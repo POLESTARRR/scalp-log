@@ -57,6 +57,80 @@
   }
 
   /* ------------------------------------------------------------------
+     Photos
+
+     IndexedDB rather than localStorage: images blow past the 5MB quota
+     quickly, and a silent quota failure would lose a photo the user
+     thinks they saved. Keyed by date, one photo per day.
+  ------------------------------------------------------------------ */
+
+  var photoDb = null;
+
+  function db() {
+    if (photoDb) return Promise.resolve(photoDb);
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error('unsupported')); return; }
+      var req = indexedDB.open('scalplog', 1);
+      req.onupgradeneeded = function () {
+        if (!req.result.objectStoreNames.contains('photos')) req.result.createObjectStore('photos');
+      };
+      req.onsuccess = function () { photoDb = req.result; resolve(photoDb); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function photoTx(mode, run) {
+    return db().then(function (d) {
+      return new Promise(function (resolve, reject) {
+        var tx = d.transaction('photos', mode);
+        var req = run(tx.objectStore('photos'));
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+
+  var putPhoto = function (date, blob) { return photoTx('readwrite', function (s) { return s.put(blob, date); }); };
+  var getPhoto = function (date) { return photoTx('readonly', function (s) { return s.get(date); }); };
+  var delPhoto = function (date) { return photoTx('readwrite', function (s) { return s.delete(date); }); };
+  var photoDates = function () { return photoTx('readonly', function (s) { return s.getAllKeys(); }); };
+  var wipePhotos = function () { return photoTx('readwrite', function (s) { return s.clear(); }); };
+
+  /* Shrink before storing. A phone photo is several megabytes and none of
+     that resolution survives being looked at in a 132px filmstrip. */
+  function shrink(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (blob) {
+          blob ? resolve(blob) : reject(new Error('encode failed'));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+      img.src = url;
+    });
+  }
+
+  /* Object URLs handed to <img> are revoked when the view re-renders. */
+  var liveUrls = [];
+  function objectUrl(blob) {
+    var url = URL.createObjectURL(blob);
+    liveUrls.push(url);
+    return url;
+  }
+  function releaseUrls() {
+    liveUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    liveUrls = [];
+  }
+
+  /* ------------------------------------------------------------------
      Header
   ------------------------------------------------------------------ */
 
@@ -499,8 +573,11 @@
      Log sheet
   ------------------------------------------------------------------ */
 
+  var pendingPhoto;   /* Blob when a new one was picked, null when removed */
+
   function openSheet() {
     var existing = entryFor(selectedDay);
+    pendingPhoto = undefined;
 
     $('#fDate').value = selectedDay;
     $('#fSeverity').value = existing ? existing.severity : 5;
@@ -512,11 +589,9 @@
 
     $('#sheetTitle').textContent = existing ? 'Edit entry' : 'Log an entry';
 
-    $('#fTriggers').innerHTML = TRIGGERS.map(function (t) {
-      var on = existing && (existing.triggers || []).indexOf(t) !== -1;
-      return '<label class="chip"><input type="checkbox" value="' + esc(t) + '"' + (on ? ' checked' : '') +
-        '><span>' + esc(t) + '</span></label>';
-    }).join('');
+    renderProductOptions();
+    renderTriggerGroups(existing);
+    renderPhotoSlot(selectedDay);
 
     $('#scrim').hidden = false;
     $('#sheet').hidden = false;
@@ -527,6 +602,77 @@
     $('#scrim').hidden = true;
     $('#sheet').hidden = true;
     document.body.style.overflow = '';
+  }
+
+  /* Presets first, then anything the user has actually typed before. */
+  function knownProducts() {
+    var seen = {};
+    var list = [];
+    entries.forEach(function (e) {
+      var name = (e.product || '').trim();
+      if (name && !seen[name.toLowerCase()]) { seen[name.toLowerCase()] = 1; list.push(name); }
+    });
+    PRODUCT_PRESETS.forEach(function (name) {
+      if (!seen[name.toLowerCase()]) { seen[name.toLowerCase()] = 1; list.push(name); }
+    });
+    return list;
+  }
+
+  function renderProductOptions() {
+    var all = knownProducts();
+    $('#productList').innerHTML = all.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+
+    /* Recent first — most people rotate two or three things. */
+    var recent = [];
+    sorted().reverse().forEach(function (e) {
+      var name = (e.product || '').trim();
+      if (name && recent.indexOf(name) === -1 && recent.length < 6) recent.push(name);
+    });
+    var picks = recent.length ? recent : PRODUCT_PRESETS.slice(0, 6);
+
+    $('#quickPicks').innerHTML = picks.map(function (n) {
+      return '<button class="quickpick" type="button" data-pick="' + esc(n) + '">' + esc(n) + '</button>';
+    }).join('');
+    syncQuickPicks();
+  }
+
+  function syncQuickPicks() {
+    var current = $('#fProduct').value.trim().toLowerCase();
+    $$('#quickPicks .quickpick').forEach(function (b) {
+      b.classList.toggle('is-on', b.dataset.pick.toLowerCase() === current);
+    });
+  }
+
+  function renderTriggerGroups(existing) {
+    var chosen = existing ? (existing.triggers || []) : [];
+    $('#fTriggers').innerHTML = TRIGGER_GROUPS.map(function (group) {
+      return '<div class="tgroup"><p class="tgroup-label">' + esc(group.label) + '</p><div class="chips">' +
+        group.items.map(function (t) {
+          var on = chosen.indexOf(t) !== -1;
+          return '<label class="chip"><input type="checkbox" value="' + esc(t) + '"' + (on ? ' checked' : '') +
+            '><span>' + esc(t) + '</span></label>';
+        }).join('') + '</div></div>';
+    }).join('');
+  }
+
+  function renderPhotoSlot(date) {
+    var slot = $('#photoSlot');
+    var drop = $('#dropPhoto');
+
+    var show = function (blob) {
+      if (!blob) {
+        slot.classList.remove('has-image');
+        slot.innerHTML = '<span class="photo-hint">Same spot, same light, once a week beats daily guesswork.</span>';
+        drop.hidden = true;
+        return;
+      }
+      slot.classList.add('has-image');
+      slot.innerHTML = '<img src="' + objectUrl(blob) + '" alt="Photo for this entry">';
+      drop.hidden = false;
+    };
+
+    if (pendingPhoto !== undefined) { show(pendingPhoto); return; }
+    getPhoto(date).then(show).catch(function () { show(null); });
   }
 
   function saveEntry() {
@@ -545,10 +691,63 @@
     entries.push(record);
     write(STORE.entries, entries);
 
+    var photoWork = Promise.resolve();
+    if (pendingPhoto instanceof Blob) photoWork = putPhoto(date, pendingPhoto);
+    else if (pendingPhoto === null) photoWork = delPhoto(date);
+
     selectedDay = date;
     closeSheet();
     renderAll();
     toast('Saved');
+
+    /* Only the strip is refreshed afterwards — a second full renderAll here
+       would revoke the object URLs this render is still creating. */
+    photoWork.then(renderFilmstrip, function () {
+      toast('Entry saved, but the photo could not be stored');
+    });
+  }
+
+  function renderFilmstrip() {
+    var block = $('#photoBlock');
+
+    photoDates().then(function (dates) {
+      if (!dates || !dates.length) { block.hidden = true; return; }
+      dates.sort();
+
+      return Promise.all(dates.map(getPhoto)).then(function (blobs) {
+        $('#photoCount').textContent = dates.length + (dates.length === 1 ? ' photo' : ' photos');
+
+        $('#filmstrip').innerHTML = dates.map(function (date, i) {
+          var entry = entryFor(date);
+          var when = parse(date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+          return '<button class="frame" type="button" data-photo="' + date + '">' +
+            '<img src="' + objectUrl(blobs[i]) + '" alt="Photo from ' + when + '">' +
+            '<p class="frame-cap">' + when + '</p>' +
+            '<p class="frame-sev">' + (entry ? 'Severity ' + entry.severity : 'Not logged') + '</p>' +
+          '</button>';
+        }).join('');
+
+        block.hidden = false;
+      });
+    }).catch(function () { block.hidden = true; });
+  }
+
+  function openLightbox(date) {
+    getPhoto(date).then(function (blob) {
+      if (!blob) return;
+      var entry = entryFor(date);
+      $('#lightboxImg').src = objectUrl(blob);
+      $('#lightboxCap').textContent = parse(date).toLocaleDateString(undefined, {
+        weekday: 'long', day: 'numeric', month: 'long'
+      }) + (entry ? ' · severity ' + entry.severity : '');
+      $('#lightbox').hidden = false;
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  function closeLightbox() {
+    $('#lightbox').hidden = true;
+    document.body.style.overflow = '';
   }
 
   /* ------------------------------------------------------------------
@@ -591,6 +790,7 @@
   }
 
   function renderAll() {
+    releaseUrls();
     renderHeader();
     renderDayStrip();
     renderHero();
@@ -598,6 +798,7 @@
     renderChart();
     renderPatterns();
     renderHistory();
+    renderFilmstrip();
   }
 
   function init() {
@@ -614,7 +815,44 @@
     $('#saveEntry').addEventListener('click', saveEntry);
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet();
+      if (e.key !== 'Escape') return;
+      if (!$('#lightbox').hidden) closeLightbox();
+      else if (!$('#sheet').hidden) closeSheet();
+    });
+
+    $('#fPhoto').addEventListener('change', function () {
+      var file = this.files && this.files[0];
+      this.value = '';
+      if (!file) return;
+      shrink(file, 1280, 0.72).then(function (blob) {
+        pendingPhoto = blob;
+        renderPhotoSlot(selectedDay);
+      }).catch(function () { toast('That image could not be read'); });
+    });
+
+    $('#dropPhoto').addEventListener('click', function () {
+      pendingPhoto = null;
+      renderPhotoSlot(selectedDay);
+    });
+
+    $('#quickPicks').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-pick]');
+      if (!btn) return;
+      var field = $('#fProduct');
+      field.value = field.value.trim() === btn.dataset.pick ? '' : btn.dataset.pick;
+      syncQuickPicks();
+    });
+
+    $('#fProduct').addEventListener('input', syncQuickPicks);
+
+    $('#filmstrip').addEventListener('click', function (e) {
+      var frame = e.target.closest('[data-photo]');
+      if (frame) openLightbox(frame.dataset.photo);
+    });
+
+    $('#lightboxClose').addEventListener('click', closeLightbox);
+    $('#lightbox').addEventListener('click', function (e) {
+      if (e.target === this) closeLightbox();
     });
 
     $('#fSeverity').addEventListener('input', function () { $('#outSeverity').textContent = this.value; });
@@ -653,11 +891,12 @@
     $('#exportBtn').addEventListener('click', exportCsv);
     $('#wipeBtn').addEventListener('click', function () {
       if (!entries.length) { toast('Nothing stored'); return; }
-      if (!confirm('Delete every entry on this device? Export first if you want a copy — this cannot be undone.')) return;
+      if (!confirm('Delete every entry and photo on this device? Export first if you want a copy — this cannot be undone.')) return;
       entries = [];
       routine = {};
       write(STORE.entries, entries);
       write(STORE.routine, routine);
+      wipePhotos().catch(function () {});
       renderAll();
       toast('All data deleted');
     });
