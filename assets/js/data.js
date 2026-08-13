@@ -125,6 +125,37 @@ const INGREDIENTS = [
   { name:'Fluocinolone Acetonide', cat:'active', note:'Medium-potency steroid, commonly supplied as a scalp oil. Flares only.' },
   { name:'Chlorhexidine', cat:'active', note:'Antiseptic. A randomised trial paired it with cetrimide for seborrheic dermatitis with useful results.' },
 
+  /* ---------- hair-loss actives ----------
+     Not antifungal, but people put them on the same scalp, and the vehicle
+     they arrive in is often the thing that decides whether seb derm flares. */
+  { name:'Minoxidil', cat:'hair', note:'The mainstay of topical hair regrowth, and a genuine complication on a seb-derm scalp. In confirmed contact dermatitis cases 74.7% reacted to minoxidil itself; scalp irritation affects roughly 7% on 2% solution and more on 5%. Not a reason to avoid it — a reason to pick the formulation carefully and pair it with an antifungal shampoo.' },
+  { name:'Nanoxidil', cat:'hair', note:'A minoxidil analogue with lower molecular weight, marketed as less irritating. Far less evidence behind it than minoxidil, and the vehicle still matters more than the molecule.' },
+  { name:'Aminexil', cat:'hair', note:'Structurally related to minoxidil, used widely in European hair products. Evidence is thinner and mostly manufacturer-sponsored.' },
+  { name:'Finasteride', cat:'hair', note:'5-alpha reductase inhibitor. Topical forms reach scalp DHT with less systemic exposure than oral, but contact dermatitis has been reported at 12–24% in some combination formulations — attributed to vehicle alcohol and propylene glycol as much as to the drug.' },
+  { name:'Dutasteride', cat:'hair', note:'Dual 5-alpha reductase inhibitor, more potent than finasteride at suppressing DHT. Published research on the topical form is limited, and compounded versions vary considerably in what they are dissolved in.' },
+  { name:'Tretinoin', cat:'hair', note:'Sometimes compounded with minoxidil to improve penetration. It also thins the stratum corneum, which on an inflamed seb-derm scalp increases irritation and stinging. Use with caution during a flare.' },
+  { name:'Latanoprost', cat:'hair', note:'Prostaglandin analogue borrowed from glaucoma treatment. Real but limited scalp evidence; mostly used for eyelashes and eyebrows.' },
+  { name:'Rosemary Oil', cat:'hair', note:'A randomised trial of 100 patients found it comparable to minoxidil 2% at six months, with significantly less scalp itching — which matters on skin that is already inflamed. It remains an essential oil and can sensitise if used undiluted.' },
+  { name:'Rosmarinus Officinalis', cat:'hair', note:'INCI name for rosemary. Same trial evidence and the same caution about undiluted use.' },
+  { name:'Saw Palmetto', cat:'hair', note:'Botanical 5-alpha reductase inhibitor, sold widely in serums. Evidence is weak and inconsistent, though the safety profile is good and it is not a yeast feeder.' },
+  { name:'Serenoa Repens', cat:'hair', note:'INCI name for saw palmetto.' },
+  { name:'Redensyl', cat:'hair', note:'Trade-name peptide-and-polyphenol complex targeting hair follicle stem cells. Manufacturer data only, no independent trials, but harmless to the yeast question.' },
+  { name:'Procapil', cat:'hair', note:'Trade-name blend of a peptide, apigenin and oleanolic acid. Manufacturer-sponsored evidence. Note some formulations carry it in oleic-acid-derived carriers, so read the rest of the list.' },
+  { name:'Capixyl', cat:'hair', note:'Peptide plus red clover extract complex. Supplier-generated evidence.' },
+  { name:'Baicapil', cat:'hair', note:'Botanical complex marketed for the anagen phase. Supplier evidence only.' },
+  { name:'AnaGain', cat:'hair', note:'Pea sprout extract complex. Supplier evidence only.' },
+  { name:'Acetyl Tetrapeptide-3', cat:'hair', note:'The peptide inside several branded hair complexes. Inert with respect to Malassezia.' },
+  { name:'Biotinoyl Tripeptide-1', cat:'hair', note:'Biotin-linked peptide used in hair serums. Not a yeast fuel source.' },
+  { name:'Copper Tripeptide-1', cat:'hair', note:'Also labelled GHK-Cu. Wound-healing peptide used in scalp serums. Inert to the yeast.' },
+  { name:'Adenosine', cat:'hair', note:'One of the better-evidenced non-prescription hair actives, approved for the purpose in Japan. Water-soluble and irrelevant to Malassezia.' },
+  { name:'Melatonin', cat:'hair', note:'Topical melatonin has modest supporting data for androgenetic alopecia. Usually formulated in alcohol, which is the part to watch on inflamed skin.' },
+  { name:'Stemoxydine', cat:'hair', note:'Follicle-focused active from a major cosmetics house. Brand-sponsored evidence.' },
+  { name:'Caffeine', cat:'hair', note:'Blocks DHT effects on the follicle in laboratory work; human evidence is modest but it is cheap, well tolerated and does not feed the yeast.' },
+  { name:'Biotin', cat:'hair', note:'Only useful if you are actually deficient, which most people are not. Harmless either way, topically or orally.' },
+  { name:'Ketoconazole 2%', cat:'active', note:'Worth calling out separately from plain ketoconazole because this is the strength with hair evidence: improved hair density and anagen proportion in androgenetic alopecia, additive with finasteride. The rare product that treats the seb derm and the hair loss at once.' },
+  { name:'Onion Extract', cat:'hair', note:'Some small trial support for alopecia areata specifically, not pattern hair loss. Sulphur-containing and generally not a feeder.' },
+  { name:'Pumpkin Seed Oil', cat:'feeder', note:'Promoted for hair loss on the back of one oral supplement trial. As a topical it is a triglyceride oil with meaningful oleic and linoleic content, so on a seb-derm scalp it works against you.' },
+
   /* ---------- conditional ---------- */
   { name:'MCT Oil', cat:'conditional', note:'Not one fixed thing. A true medium-chain triglyceride oil runs about 57% caprylic (C8) and 40% capric (C10) with under 1% lauric — both too short to be usable. But "MCT oil" is not a regulated term and some bottles blend lauric acid back in. If the label does not say Caprylic/Capric Triglyceride, treat it as probably fine rather than known safe.' },
   { name:'Fractionated Coconut Oil', cat:'conditional', note:'Ambiguous by name. Sometimes it means coconut oil with the long chains stripped out, sometimes it is a nicer word for MCT oil. Same caveat.' },
@@ -196,7 +227,68 @@ const INGREDIENTS = [
   { name:'Potassium Sorbate', cat:'safe', note:'Preservative.' },
   { name:'Citric Acid', cat:'safe', note:'pH adjuster, usually present in tiny amounts.' },
   { name:'Xanthan Gum', cat:'safe', note:'Thickener, a polysaccharide rather than a lipid.' },
-  { name:'Caffeine', cat:'safe', note:'Sometimes added to scalp products. No feeding mechanism.' },
+
+  /* ---------- alcohols ----------
+     The single most confused group on any label. Short-chain alcohols strip
+     and dry. Fatty alcohols are waxy emollients that do the opposite. They
+     share a word and nothing else. */
+  { name:'Alcohol Denat', cat:'irritant', note:'Denatured ethanol. Evaporates fast, carries actives well, and strips barrier lipids from skin that is already short of them. The most common drying alcohol in serums and sprays.' },
+  { name:'SD Alcohol 40', cat:'irritant', note:'Specially denatured ethanol, the version used in most minoxidil foams and sprays. Same drying behaviour as alcohol denat.' },
+  { name:'Ethanol', cat:'irritant', note:'Plain ethyl alcohol. In minoxidil solutions it sits alongside propylene glycol as the other half of the drying vehicle.' },
+  { name:'Isopropyl Alcohol', cat:'irritant', note:'Rubbing alcohol. Harsher on skin than ethanol and no gentler on an inflamed scalp.' },
+  { name:'Benzyl Alcohol', cat:'safe', note:'Despite the name this is a preservative used at fractions of a percent, not a drying solvent. A recognised contact allergen for a small minority, but not comparable to alcohol denat.' },
+  { name:'Myristyl Alcohol', cat:'conditional', note:'Fatty alcohol, C14. Waxy emollient rather than a solvent — it does not dry skin. Same caveat as the other fatty alcohols: check what it is emulsified with.' },
+  { name:'Lauryl Alcohol', cat:'conditional', note:'Fatty alcohol, C12. Not a drying alcohol. Frequently a feedstock for the sulfate surfactants further up the label.' },
+  { name:'Oleyl Alcohol', cat:'conditional', note:'Fatty alcohol derived from oleic acid. The most cautious of the fatty alcohols for this condition, given its origin.' },
+
+  /* ---------- shampoo surfactants ---------- */
+  { name:'Ammonium Lauryl Sulfate', cat:'irritant', note:'Sulfate cleanser, comparable in harshness to SLS. Effective and stripping.' },
+  { name:'Ammonium Laureth Sulfate', cat:'safe', note:'Ethoxylated, so milder than the plain lauryl version. Not a feeder, though still a fairly strong cleanser.' },
+  { name:'Sodium Coco-Sulfate', cat:'irritant', note:'Marketed as the natural alternative to SLS. Chemically very close to it and no gentler in practice.' },
+  { name:'TEA-Lauryl Sulfate', cat:'irritant', note:'Triethanolamine sulfate salt. Same stripping behaviour as the sodium version.' },
+  { name:'Sodium C14-16 Olefin Sulfonate', cat:'irritant', note:'Common sulfate-free replacement that is not actually gentle — it can be as drying as SLS.' },
+  { name:'Sodium Methyl Cocoyl Taurate', cat:'safe', note:'Genuinely mild taurate surfactant. A good sign on a label.' },
+  { name:'Disodium Laureth Sulfosuccinate', cat:'safe', note:'Mild secondary surfactant, common in low-irritation shampoos.' },
+  { name:'Sodium Lauroyl Sarcosinate', cat:'safe', note:'Mild amino-acid-derived cleanser.' },
+  { name:'Sodium Cocoyl Glycinate', cat:'safe', note:'Amino-acid surfactant, mild and pH-friendly.' },
+  { name:'Coco-Betaine', cat:'conditional', note:'Close relative of cocamidopropyl betaine. Not a feeder, but shares the contact-allergy caveat.' },
+  { name:'Cocamidopropyl Hydroxysultaine', cat:'safe', note:'Mild amphoteric surfactant, used where extra gentleness is wanted.' },
+  { name:'Disodium Cocoamphodiacetate', cat:'safe', note:'Very mild amphoteric surfactant, common in baby and sensitive-scalp shampoos.' },
+  { name:'Sodium Lauroamphoacetate', cat:'safe', note:'Another mild amphoteric cleanser.' },
+  { name:'Cocamide MEA', cat:'feeder', note:'A coconut fatty acid amide used to thicken and boost foam. Unlike the betaine and isethionate surfactants, this one retains a usable fatty acid chain — treat it as a feeder.' },
+  { name:'Cocamide DEA', cat:'feeder', note:'Same fatty acid amide chemistry as cocamide MEA, with additional safety questions of its own.' },
+  { name:'Lauramide DEA', cat:'feeder', note:'Lauric acid amide foam booster. Same reasoning.' },
+  { name:'PEG-150 Distearate', cat:'feeder', note:'Stearate thickener, extremely common in shampoo. Easy to miss because it reads as a PEG rather than as a fat.' },
+  { name:'PEG-7 Glyceryl Cocoate', cat:'feeder', note:'Coconut-derived refatting agent added to soften harsh cleansers. Well intentioned, wrong ingredient for this condition.' },
+  { name:'Glyceryl Cocoate', cat:'feeder', note:'Coconut fatty acid ester used as an emollient in wash-off products.' },
+
+  /* ---------- conditioning agents ---------- */
+  { name:'Cetrimonium Chloride', cat:'safe', note:'Cationic detangler and antistatic agent. Not a lipid, no feeding mechanism.' },
+  { name:'Behentrimonium Chloride', cat:'safe', note:'Conditioning quaternary ammonium compound. Low concern by mechanism.' },
+  { name:'Stearalkonium Chloride', cat:'safe', note:'Older conditioning quat, still common in rinse-out conditioners.' },
+  { name:'Polyquaternium-11', cat:'safe', note:'Film-forming conditioning polymer.' },
+  { name:'Hydrolyzed Keratin', cat:'safe', note:'Protein fragment for hair strength. Nothing here for the yeast.' },
+  { name:'Hydrolyzed Silk Protein', cat:'safe', note:'Protein fragment, inert to Malassezia.' },
+  { name:'Hydrolyzed Rice Protein', cat:'safe', note:'Protein fragment, inert.' },
+  { name:'Behenoxy Dimethicone', cat:'safe', note:'Silicone conditioner. Not metabolisable by the yeast.' },
+  { name:'Bis-Aminopropyl Dimethicone', cat:'safe', note:'Repair-focused silicone, same reasoning as other silicones.' },
+
+  /* ---------- preservatives, chelators, pH ---------- */
+  { name:'Methylparaben', cat:'safe', note:'Well-studied preservative with a low irritation rate. The controversy around parabens is not a seb-derm issue.' },
+  { name:'Propylparaben', cat:'safe', note:'Same family and reasoning as methylparaben.' },
+  { name:'Diazolidinyl Urea', cat:'irritant', note:'Formaldehyde-releasing preservative. Unrelated to plain urea despite the name.' },
+  { name:'Chlorphenesin', cat:'safe', note:'Mild preservative, occasionally sensitising.' },
+  { name:'Disodium EDTA', cat:'safe', note:'Chelator that stops minerals in hard water interfering with the formula. Present in trace amounts.' },
+  { name:'Tetrasodium EDTA', cat:'safe', note:'Same chelating role as disodium EDTA.' },
+  { name:'Sodium Hydroxide', cat:'safe', note:'pH adjuster, fully neutralised in the finished product.' },
+  { name:'Sodium Chloride', cat:'safe', note:'Salt, used to thicken surfactant systems. Can feel drying at high levels but is not an irritant in the usual sense.' },
+  { name:'Carbomer', cat:'safe', note:'Synthetic thickener. Inert.' },
+  { name:'Hydroxyethylcellulose', cat:'safe', note:'Cellulose thickener. Inert.' },
+  { name:'Butylene Glycol', cat:'safe', note:'Humectant and solvent, and the usual stand-in when a formulator wants to avoid propylene glycol. Much better tolerated.' },
+  { name:'Pentylene Glycol', cat:'safe', note:'Humectant with mild preservative action. Well tolerated.' },
+  { name:'Bentonite', cat:'safe', note:'Clay used in scalp detox products. Absorbent and inert, though drying with frequent use.' },
+  { name:'Charcoal', cat:'safe', note:'Adsorbent, mostly a marketing ingredient in shampoo. Harmless.' },
+  { name:'Butylated Hydroxytoluene', cat:'safe', note:'BHT, an antioxidant that stops the formula going rancid. Present in tiny amounts, including in minoxidil foam.' },
 
   /* ---------- irritants ---------- */
   { name:'Fragrance', cat:'irritant', note:'A leading cause of the contact dermatitis that mimics and worsens seb derm. Nothing to do with feeding the yeast — a separate way to stay inflamed.' },
@@ -207,7 +299,6 @@ const INGREDIENTS = [
   { name:'Geraniol', cat:'irritant', note:'Declared fragrance allergen.' },
   { name:'Sodium Lauryl Sulfate', cat:'irritant', note:'Effective but harsh. Strips barrier lipids from skin already short of them.' },
   { name:'Propylene Glycol', cat:'irritant', note:'Present in many antifungal shampoos themselves, and a known contact allergen for a minority. Worth patch testing before blaming the active ingredient.' },
-  { name:'Alcohol Denat', cat:'irritant', note:'Drying and barrier-disrupting with frequent use.' },
   { name:'Methylisothiazolinone', cat:'irritant', note:'Preservative with a substantial contact-allergy record.' },
   { name:'Methylchloroisothiazolinone', cat:'irritant', note:'Usually paired with MIT, same concern.' },
   { name:'DMDM Hydantoin', cat:'irritant', note:'Formaldehyde-releasing preservative.' },
@@ -219,12 +310,49 @@ const INGREDIENTS = [
 ];
 
 const CATEGORIES = {
-  feeder:      { label:'Feeds the yeast',   flag:true  },
-  active:      { label:'Antifungal active', flag:false },
-  conditional: { label:'Depends on type',   flag:false },
-  safe:        { label:'Safe to use',       flag:false },
-  irritant:    { label:'Irritant risk',     flag:false }
+  feeder:      { label:'Feeds the yeast',    flag:true  },
+  active:      { label:'Antifungal active',  flag:false },
+  hair:        { label:'Hair-loss active',   flag:false },
+  conditional: { label:'Depends on type',    flag:false },
+  safe:        { label:'Safe to use',        flag:false },
+  irritant:    { label:'Irritant risk',      flag:true  }
 };
+
+/* Co-occurrence rules. A list of ingredients does not tell you much on its
+   own — what matters is which ones are sitting in the bottle together. Each
+   rule fires only when every ingredient in `needs` is present. */
+const INTERACTIONS = [
+  {
+    needs:['Minoxidil','Propylene Glycol'],
+    tone:'bad',
+    title:'This is the propylene glycol vehicle',
+    text:'In patch-test-confirmed minoxidil contact dermatitis, 17.1% of reactions were to the propylene glycol in the vehicle rather than the drug. Irritation runs higher on 5% solution than 2% precisely because it carries more PG. <strong>Minoxidil foam is propylene-glycol-free</strong> and has significantly lower reported scalp irritation — switching formulation usually fixes this without stopping treatment.'
+  },
+  {
+    needs:['Minoxidil'],
+    tone:'warn',
+    title:'Minoxidil on a seb-derm scalp',
+    text:'Starting topical minoxidil over existing seborrheic dermatitis commonly flares it — drying vehicle plus increased scalp turnover. Note also that minoxidil itself is the more common allergen: 74.7% of confirmed contact dermatitis cases reacted to the drug, not the vehicle. Standard mitigation is ketoconazole 2% or zinc pyrithione shampoo two to three times a week alongside, rather than abandoning the minoxidil.'
+  },
+  {
+    needs:['Ketoconazole','Minoxidil'],
+    tone:'good',
+    title:'These two work together, not against each other',
+    text:'Ketoconazole 2% is not just damage control here. Trials show it improves hair density and the proportion of anagen follicles in androgenetic alopecia via local DHT-pathway disruption, with effects broadly comparable to minoxidil in some head-to-head work and an additive effect alongside finasteride. One bottle is treating the yeast, the other the hair loss, and the antifungal is quietly helping both.'
+  },
+  {
+    needs:['Finasteride','Propylene Glycol'],
+    tone:'warn',
+    title:'Vehicle irritation, not just the drug',
+    text:'Contact dermatitis rates of 12–24% have been reported for some topical finasteride and minoxidil combination formulations, and the irritation is attributed to vehicle components — alcohol and propylene glycol — as much as to the active. Propylene glycol also increases how much drug crosses the skin, which raises systemic exposure.'
+  },
+  {
+    needs:['Rosemary Oil'],
+    tone:'good',
+    title:'The gentler comparator',
+    text:'A randomised trial of 100 patients found rosemary oil comparable to minoxidil 2% for hair count at six months, with <strong>significantly less scalp itching</strong>. On an already inflamed scalp that tolerability difference is the whole point. Note it is still an essential oil and can sensitise undiluted.'
+  }
+];
 
 /* Every item carries an id so its status can be tracked. `rx` marks the ones
    that need a prescriber — the ladder is only useful if it is obvious which

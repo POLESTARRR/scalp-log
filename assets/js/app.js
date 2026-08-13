@@ -427,7 +427,10 @@
     var feeders = grouped.feeder || [];
     var conditional = grouped.conditional || [];
     var actives = grouped.active || [];
+    var hairActives = grouped.hair || [];
+    var irritants = grouped.irritant || [];
     var topFeeders = feeders.filter(function (h) { return weight(h) === 'high'; });
+    var topIrritants = irritants.filter(function (h) { return weight(h) === 'high'; });
 
     var verdict = $('#scanVerdict');
     verdict.className = 'verdict';
@@ -437,6 +440,13 @@
       verdict.textContent = topFeeders[0].ing.name + ' is ingredient ' + topFeeders[0].position +
         ' of ' + topFeeders[0].total + ' here. That high up the list it is a major part of the formula, ' +
         'and it feeds the yeast you are treating.';
+    } else if (topIrritants.length) {
+      /* An irritant in the opening positions is a vehicle, not a trace — this
+         is the minoxidil-in-propylene-glycol case, and it used to read "safe". */
+      verdict.classList.add('is-bad');
+      verdict.textContent = topIrritants[0].ing.name + ' is ingredient ' + topIrritants[0].position +
+        ' of ' + topIrritants[0].total + '. Nothing here feeds the yeast, but at that concentration this is ' +
+        'the vehicle rather than a trace — and on skin that is already inflamed, irritation alone can keep a flare going.';
     } else if (feeders.length) {
       verdict.classList.add('is-bad');
       verdict.textContent = (feeders.length === 1 ? 'One ingredient here feeds' : feeders.length + ' ingredients here feed') +
@@ -445,15 +455,18 @@
       verdict.classList.add('is-ok');
       verdict.textContent = 'Nothing confirmed as a feeder, but ' + conditional.length +
         ' ingredient' + (conditional.length > 1 ? 's depend' : ' depends') + ' on how it was made. Read the notes before trusting it.';
-    } else if (actives.length) {
+    } else if (actives.length || hairActives.length) {
       verdict.classList.add('is-ok');
-      verdict.textContent = 'Active antifungal present and no feeders detected. This one is doing its job on paper.';
+      verdict.textContent = (actives.length ? 'Antifungal' : 'Hair-loss') + ' active present and no feeders detected' +
+        (irritants.length ? ', though there are ' + irritants.length + ' irritant-watchlist ingredients low on the list.' : '. This one is doing its job on paper.');
     } else if (hits.length) {
       verdict.classList.add('is-ok');
       verdict.textContent = 'No feeders detected. Safe to use, though nothing here is actively treating anything either.';
     } else {
       verdict.textContent = 'Nothing recognised. Paste the full list as printed on the label — INCI names give the best read.';
     }
+
+    renderInteractions(hits);
 
     $('#scanGroups').innerHTML = Object.keys(CATEGORIES).filter(function (cat) {
       return grouped[cat] && grouped[cat].length;
@@ -477,6 +490,33 @@
     }
 
     box.hidden = false;
+  }
+
+  /* Co-occurrence rules — what the combination means, which is usually more
+     useful than any single ingredient on its own. */
+  function renderInteractions(hits) {
+    var present = {};
+    hits.forEach(function (h) { present[h.ing.name.toLowerCase()] = true; });
+
+    var fired = INTERACTIONS.filter(function (rule) {
+      return rule.needs.every(function (n) { return present[n.toLowerCase()]; });
+    });
+
+    /* A more specific rule wins over a general one about the same drug —
+       no point saying "minoxidil may flare this" directly under a note that
+       already explains exactly which part of it does. */
+    fired = fired.filter(function (rule) {
+      return !fired.some(function (other) {
+        return other !== rule && other.needs.length > rule.needs.length &&
+          rule.needs.every(function (n) { return other.needs.indexOf(n) !== -1; });
+      });
+    });
+
+    $('#scanInteractions').innerHTML = fired.map(function (rule) {
+      return '<div class="inter is-' + rule.tone + '">' +
+        '<p class="inter-title">' + esc(rule.title) + '</p>' +
+        '<p class="inter-body">' + rule.text + '</p></div>';
+    }).join('');
   }
 
   function renderReference(filter) {

@@ -350,6 +350,19 @@ input::placeholder,textarea::placeholder{ color:var(--ink-45); }
 .verdict.is-bad{ background:var(--red-10); color:var(--red); }
 .verdict.is-ok{ background:var(--white); border:1px solid var(--sage-40); box-shadow:var(--lift-sm); }
 
+/* Interaction notes — what the combination means */
+.inter{
+  border-radius:var(--r-md); padding:16px 18px; margin-bottom:10px;
+  border:1px solid var(--sage-30); background:var(--white);
+}
+.inter.is-bad{ background:var(--red-10); border-color:var(--red); }
+.inter.is-warn{ background:var(--sage-20); border-color:var(--sage-70); }
+.inter.is-good{ background:var(--white); border-color:var(--charcoal); }
+.inter-title{ font-size:15px; font-weight:800; letter-spacing:-.01em; }
+.inter.is-bad .inter-title{ color:var(--red); }
+.inter-body{ margin-top:7px; font-size:13.5px; line-height:1.6; color:var(--ink-60); }
+.inter-body strong{ color:var(--charcoal); font-weight:800; }
+
 .group{
   background:var(--white); border:1px solid var(--sage-30);
   border-radius:var(--r-md); padding:16px; margin-bottom:10px;
