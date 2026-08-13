@@ -382,28 +382,91 @@
       .filter(function (t) { return t.length > 1; });
   }
 
+  /* Strip the noise a real label carries: percentages, "w/v", trailing
+     asterisks, and the numbering some sites add. */
+  function clean(token) {
+    return token
+      .replace(/\d+(\.\d+)?\s*%\s*(w\/v|w\/w|v\/v)?/gi, ' ')
+      .replace(/^\s*\d+[\).]\s*/, '')
+      .replace(/[*†‡]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /* A label writes "Redensyl (Dihydroquercetin Glucoside and EGCG Glucoside)".
+     The parent name and each component are all worth matching, so every token
+     yields several candidates while keeping the parent's list position. */
+  function candidates(token) {
+    var out = [token];
+    token.split(/\s+and\s+|[()\/+]/i).forEach(function (part) {
+      part = part.trim();
+      if (part.length > 2 && out.indexOf(part) === -1) out.push(part);
+    });
+    return out;
+  }
+
   /* Longest match wins, so "Caprylic/Capric Triglyceride" is not also
      reported as a bare hit on something shorter that it contains. */
   function scan(text) {
-    var tokens = tokenize(text);
+    var tokens = tokenize(text).map(clean).filter(Boolean);
     var found = {};
+    var unknown = [];
 
     tokens.forEach(function (token, index) {
-      var lower = token.toLowerCase();
-      var matches = INGREDIENTS.filter(function (ing) {
-        return lower.indexOf(ing.name.toLowerCase()) !== -1;
-      });
-      if (!matches.length) return;
+      var parts = candidates(token);
+      var matches = [];
 
-      matches.sort(function (a, b) { return b.name.length - a.name.length; });
-      var best = matches[0];
-      if (!found[best.name]) {
-        found[best.name] = { ing: best, position: index + 1, total: tokens.length };
+      var whole = token.toLowerCase();
+      var seenIng = {};
+      parts.forEach(function (part) {
+        var lower = part.toLowerCase();
+        INGREDIENTS.forEach(function (ing) {
+          if (seenIng[ing.name] || lower.indexOf(ing.name.toLowerCase()) === -1) return;
+          seenIng[ing.name] = true;
+          /* Rank by where the name sits in the whole token, not in the
+             fragment — every fragment starts at zero, which is useless. */
+          var at = whole.indexOf(ing.name.toLowerCase());
+          matches.push({ ing: ing, at: at === -1 ? 999 : at });
+        });
+      });
+
+      if (matches.length) {
+        /* Earliest in the token wins, then longest. So "Redensyl (DHQG and
+           EGCG Glucoside)" reports as Redensyl — the name on the bottle —
+           rather than as whichever component happens to have a longer name. */
+        matches.sort(function (a, b) {
+          return a.at - b.at || b.ing.name.length - a.ing.name.length;
+        });
+        var best = matches[0].ing;
+        if (!found[best.name]) {
+          found[best.name] = { ing: best, position: index + 1, total: tokens.length };
+        }
+        return;
+      }
+
+      /* No curated entry — fall back to naming convention, and if even that
+         fails, report it rather than dropping it. */
+      var guess = null;
+      for (var i = 0; i < PATTERNS.length; i++) {
+        if (PATTERNS[i].re.test(token)) { guess = PATTERNS[i]; break; }
+      }
+
+      if (guess) {
+        if (!found[token]) {
+          found[token] = {
+            ing: { name: token, cat: guess.cat, note: guess.why },
+            position: index + 1, total: tokens.length, inferred: true
+          };
+        }
+      } else {
+        unknown.push(token);
       }
     });
 
-    return Object.keys(found).map(function (k) { return found[k]; })
+    var hits = Object.keys(found).map(function (k) { return found[k]; })
       .sort(function (a, b) { return a.position - b.position; });
+    hits.unknown = unknown;
+    return hits;
   }
 
   /* Above roughly the first third of a list you are usually still in the
@@ -477,17 +540,38 @@
         '<span class="group-count">' + grouped[cat].length + '</span></div>' +
         '<div class="hits">' + grouped[cat].map(function (hit) {
           return '<span class="hit' + (meta.flag ? ' is-flag' : '') + ' w-' + weight(hit) +
+            (hit.inferred ? ' is-guess' : '') +
             '" title="' + esc(hit.ing.note) + '">' + esc(hit.ing.name) +
             '<b class="hit-pos">' + hit.position + '</b></span>';
         }).join('') + '</div></section>';
     }).join('');
 
-    if (hits.length) {
-      $('#scanGroups').insertAdjacentHTML('beforeend',
-        '<p class="fineprint">Numbers are the position on the label. Ingredient lists run in ' +
-        'descending order of concentration until the 1% mark, after which order means nothing — ' +
-        'so something in the first five is doing real work, and something near the end may be a trace.</p>');
+    var inferredCount = hits.filter(function (h) { return h.inferred; }).length;
+    var notes = '';
+
+    if (inferredCount) {
+      notes += '<p class="fineprint"><b>' + inferredCount + ' ingredient' + (inferredCount > 1 ? 's are' : ' is') +
+        ' shown with a dashed outline.</b> Those are not in the reference list — they were classified from the ' +
+        'shape of the name, so treat them as a working guess rather than a checked fact.</p>';
     }
+
+    if (hits.unknown && hits.unknown.length) {
+      notes += '<section class="group is-unknown"><div class="group-head">' +
+        '<p class="label">Not recognised</p><span class="group-count">' + hits.unknown.length + '</span></div>' +
+        '<div class="hits">' + hits.unknown.map(function (u) {
+          return '<span class="hit is-unknown">' + esc(u) + '</span>';
+        }).join('') + '</div>' +
+        '<p class="fineprint" style="margin-top:10px;">These could not be placed either way. They are listed ' +
+        'here so nothing disappears silently — but this scan is incomplete without them.</p></section>';
+    }
+
+    if (hits.length) {
+      notes += '<p class="fineprint">Numbers are the position on the label. Ingredient lists run in ' +
+        'descending order of concentration until the 1% mark, after which order means nothing — ' +
+        'so something in the first five is doing real work, and something near the end may be a trace.</p>';
+    }
+
+    if (notes) $('#scanGroups').insertAdjacentHTML('beforeend', notes);
 
     box.hidden = false;
   }
