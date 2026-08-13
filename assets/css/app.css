@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------
    Scalp Log
    Palette locked to five values. Red is reserved for actions and
-   alerts only — the moment it decorates something it stops meaning
+   alerts only. The moment it decorates something it stops meaning
    anything. Never pure black; charcoal instead.
 ----------------------------------------------------------------- */
 
@@ -20,9 +20,9 @@
   --ink-60:  rgba(23,30,25,.6);
   --ink-45:  rgba(23,30,25,.45);
 
-  --r-lg: 2.5rem;   /* 40px — main containers */
-  --r-md: 1.5rem;   /* 24px — nested cards    */
-  --r-sm: 1rem;     /* 16px — bento, inputs   */
+  --r-lg: 2.5rem;   /* 40px, main containers */
+  --r-md: 1.5rem;   /* 24px, nested cards    */
+  --r-sm: 1rem;     /* 16px, bento, inputs   */
 
   --lift: 0 20px 50px -12px rgba(0,0,0,.08);
   --lift-sm: 0 8px 24px -8px rgba(0,0,0,.1);
@@ -350,7 +350,7 @@ input::placeholder,textarea::placeholder{ color:var(--ink-45); }
 .verdict.is-bad{ background:var(--red-10); color:var(--red); }
 .verdict.is-ok{ background:var(--white); border:1px solid var(--sage-40); box-shadow:var(--lift-sm); }
 
-/* Interaction notes — what the combination means */
+/* Interaction notes, what the combination means */
 .inter{
   border-radius:var(--r-md); padding:16px 18px; margin-bottom:10px;
   border:1px solid var(--sage-30); background:var(--white);
@@ -377,7 +377,7 @@ input::placeholder,textarea::placeholder{ color:var(--ink-45); }
   background:var(--shell); border:1px solid var(--sage-30);
 }
 .hit.is-flag{ background:var(--red-10); border-color:transparent; color:var(--red); }
-/* Inferred from the name's shape rather than looked up — say so visually. */
+/* Inferred from the name's shape rather than looked up, say so visually. */
 .hit.is-guess{ border-style:dashed; border-color:var(--sage-70); }
 .hit.is-flag.is-guess{ border-color:var(--red); }
 .hit.is-unknown{ background:transparent; border-style:dashed; color:var(--ink-45); }

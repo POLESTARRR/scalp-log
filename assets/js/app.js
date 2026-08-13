@@ -253,7 +253,7 @@
       '<p class="bento-val"><span class="bento-orb">' + value + '</span>out of 10</p></div>';
   }
 
-  /* Contextual, not decorative — each line only appears when it applies. */
+  /* Contextual, not decorative, each line only appears when it applies. */
   function advice(entry) {
     if (entry.severity >= 7) {
       return '<strong>Bad day.</strong> If this is the third week without movement, the useful next step is ' +
@@ -424,7 +424,7 @@
           if (seenIng[ing.name] || lower.indexOf(ing.name.toLowerCase()) === -1) return;
           seenIng[ing.name] = true;
           /* Rank by where the name sits in the whole token, not in the
-             fragment — every fragment starts at zero, which is useless. */
+             fragment. Every fragment starts at zero, which is useless. */
           var at = whole.indexOf(ing.name.toLowerCase());
           matches.push({ ing: ing, at: at === -1 ? 999 : at });
         });
@@ -432,7 +432,7 @@
 
       if (matches.length) {
         /* Earliest in the token wins, then longest. So "Redensyl (DHQG and
-           EGCG Glucoside)" reports as Redensyl — the name on the bottle —
+           EGCG Glucoside)" reports as Redensyl. The name on the bottle , 
            rather than as whichever component happens to have a longer name. */
         matches.sort(function (a, b) {
           return a.at - b.at || b.ing.name.length - a.ing.name.length;
@@ -444,7 +444,7 @@
         return;
       }
 
-      /* No curated entry — fall back to naming convention, and if even that
+      /* No curated entry, fall back to naming convention, and if even that
          fails, report it rather than dropping it. */
       var guess = null;
       for (var i = 0; i < PATTERNS.length; i++) {
@@ -504,16 +504,16 @@
         ' of ' + topFeeders[0].total + ' here. That high up the list it is a major part of the formula, ' +
         'and it feeds the yeast you are treating.';
     } else if (topIrritants.length) {
-      /* An irritant in the opening positions is a vehicle, not a trace — this
+      /* An irritant in the opening positions is a vehicle, not a trace, this
          is the minoxidil-in-propylene-glycol case, and it used to read "safe". */
       verdict.classList.add('is-bad');
       verdict.textContent = topIrritants[0].ing.name + ' is ingredient ' + topIrritants[0].position +
         ' of ' + topIrritants[0].total + '. Nothing here feeds the yeast, but at that concentration this is ' +
-        'the vehicle rather than a trace — and on skin that is already inflamed, irritation alone can keep a flare going.';
+        'the vehicle rather than a trace. On skin that is already inflamed, irritation alone can keep a flare going.';
     } else if (feeders.length) {
       verdict.classList.add('is-bad');
       verdict.textContent = (feeders.length === 1 ? 'One ingredient here feeds' : feeders.length + ' ingredients here feed') +
-        ' Malassezia, though all of them sit low on the list — likely under 1% each. Worth knowing, not necessarily worth binning.';
+        ' Malassezia, though all of them sit low on the list, likely under 1% each. Worth knowing, not necessarily worth binning.';
     } else if (conditional.length) {
       verdict.classList.add('is-ok');
       verdict.textContent = 'Nothing confirmed as a feeder, but ' + conditional.length +
@@ -526,7 +526,7 @@
       verdict.classList.add('is-ok');
       verdict.textContent = 'No feeders detected. Safe to use, though nothing here is actively treating anything either.';
     } else {
-      verdict.textContent = 'Nothing recognised. Paste the full list as printed on the label — INCI names give the best read.';
+      verdict.textContent = 'Nothing recognised. Paste the full list as printed on the label. INCI names give the best read.';
     }
 
     renderInteractions(hits);
@@ -551,7 +551,7 @@
 
     if (inferredCount) {
       notes += '<p class="fineprint"><b>' + inferredCount + ' ingredient' + (inferredCount > 1 ? 's are' : ' is') +
-        ' shown with a dashed outline.</b> Those are not in the reference list — they were classified from the ' +
+        ' shown with a dashed outline.</b> Those are not in the reference list. They were classified from the ' +
         'shape of the name, so treat them as a working guess rather than a checked fact.</p>';
     }
 
@@ -562,12 +562,12 @@
           return '<span class="hit is-unknown">' + esc(u) + '</span>';
         }).join('') + '</div>' +
         '<p class="fineprint" style="margin-top:10px;">These could not be placed either way. They are listed ' +
-        'here so nothing disappears silently — but this scan is incomplete without them.</p></section>';
+        'here so nothing disappears silently, but this scan is incomplete without them.</p></section>';
     }
 
     if (hits.length) {
       notes += '<p class="fineprint">Numbers are the position on the label. Ingredient lists run in ' +
-        'descending order of concentration until the 1% mark, after which order means nothing — ' +
+        'descending order of concentration until the 1% mark, after which order means nothing, ' +
         'so something in the first five is doing real work, and something near the end may be a trace.</p>';
     }
 
@@ -576,7 +576,7 @@
     box.hidden = false;
   }
 
-  /* Co-occurrence rules — what the combination means, which is usually more
+  /* Co-occurrence rules, what the combination means, which is usually more
      useful than any single ingredient on its own. */
   function renderInteractions(hits) {
     var present = {};
@@ -586,7 +586,7 @@
       return rule.needs.every(function (n) { return present[n.toLowerCase()]; });
     });
 
-    /* A more specific rule wins over a general one about the same drug —
+    /* A more specific rule wins over a general one about the same drug , 
        no point saying "minoxidil may flare this" directly under a note that
        already explains exactly which part of it does. */
     fired = fired.filter(function (rule) {
@@ -633,7 +633,7 @@
     var chart = $('#chart');
     var empty = $('#chartEmpty');
 
-    /* setAttribute rather than .hidden — SVGElement has no hidden IDL
+    /* setAttribute rather than .hidden, SVGElement has no hidden IDL
        property, so assigning it silently does nothing to the markup. */
     if (!data.length) { chart.setAttribute('hidden', ''); empty.hidden = false; return; }
     chart.removeAttribute('hidden');
@@ -674,7 +674,7 @@
     var data = sorted();
 
     if (data.length < 5) {
-      box.innerHTML = '<div class="stats"><div class="locked">Patterns unlock at five entries — ' +
+      box.innerHTML = '<div class="stats"><div class="locked">Patterns unlock at five entries, ' +
         (5 - data.length) + ' to go. Comparisons before that are noise.</div></div>';
       return;
     }
@@ -713,7 +713,7 @@
 
     cards.push(ranked.length && ranked[0].gap > 0.3
       ? stat('Worst trigger', esc(ranked[0].tag), '+' + ranked[0].gap.toFixed(1) + ' severity on days you tagged it')
-      : stat('Worst trigger', 'None standing out', 'Keep tagging — three logs per trigger minimum'));
+      : stat('Worst trigger', 'None standing out', 'Keep tagging, three logs per trigger minimum'));
 
     /* Direction of travel: first half against second half. */
     var half = Math.floor(data.length / 2);
@@ -806,7 +806,7 @@
     var all = knownProducts();
     $('#productList').innerHTML = all.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
 
-    /* Recent first — most people rotate two or three things. */
+    /* Recent first, most people rotate two or three things. */
     var recent = [];
     sorted().reverse().forEach(function (e) {
       var name = (e.product || '').trim();
@@ -884,7 +884,7 @@
     renderAll();
     toast('Saved');
 
-    /* Only the strip is refreshed afterwards — a second full renderAll here
+    /* Only the strip is refreshed afterwards. A second full renderAll here
        would revoke the object URLs this render is still creating. */
     photoWork.then(renderFilmstrip, function () {
       toast('Entry saved, but the photo could not be stored');
@@ -1085,7 +1085,7 @@
     $('#exportBtn').addEventListener('click', exportCsv);
     $('#wipeBtn').addEventListener('click', function () {
       if (!entries.length) { toast('Nothing stored'); return; }
-      if (!confirm('Delete every entry and photo on this device? Export first if you want a copy — this cannot be undone.')) return;
+      if (!confirm('Delete every entry and photo on this device? Export first if you want a copy. This cannot be undone.')) return;
       entries = [];
       routine = {};
       write(STORE.entries, entries);

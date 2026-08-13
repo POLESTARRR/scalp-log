@@ -4,11 +4,11 @@ A private tracker for treatment-resistant seborrheic dermatitis.
 
 Most dandruff apps are storefronts. This one sells nothing. It does three things:
 
-- **Logs flares** — severity, itch, product, triggers — and then tells you which product
+- **Logs flares** with severity, itch, product and triggers, then tells you which product
   actually correlated with your better days rather than which one you remember liking.
 - **Scans ingredient lists** against the fatty acids *Malassezia* feeds on, because a
   conditioner built on coconut oil can quietly undo the shampoo you just used. It reads
-  position as well as presence — coconut oil second on a label is a different product
+  position as well as presence. Coconut oil second on a label is a different product
   from coconut oil twenty-second.
 - **Maps the treatment ladder**, including the rungs above the pharmacy shelf that
   nobody offers unless you ask for them by name.
@@ -57,9 +57,9 @@ mean touching code that runs.
 
 The categories follow from one fact: *Malassezia* has no fatty acid synthase gene. It
 cannot build the lipids it needs, so it secretes lipases and scavenges chains of roughly
-C11–C24 off the skin. Free fatty acids in that range feed it, esters of those acids feed
-it once lipases split them, and things outside the range — or without an ester bond at
-all, like silicones, mineral oil and squalane — generally do not.
+C11 to C24 off the skin. Free fatty acids in that range feed it, esters of those acids feed
+it once lipases split them, and things outside the range or without an ester bond at
+all, like silicones, mineral oil and squalane, generally do not.
 
 There is a deliberate fifth category, `conditional`, for ingredients where a flat verdict
 would be wrong. MCT oil is the clearest case: the real thing is about 57% caprylic and
