@@ -536,6 +536,31 @@ input[type="range"]::-moz-range-thumb{
   font-size:24px; line-height:1; display:grid; place-items:center;
 }
 
+/* ---------- first run questions ---------- */
+
+/* Sized to its content like the log sheet, so a short question does not
+   leave the buttons stranded halfway up the screen. The .sheet max-height
+   still takes over when the option list is long. */
+.intro-help{ font-size:14px; line-height:1.6; color:var(--ink-60); margin-bottom:18px; }
+.intro-empty{ font-size:14px; color:var(--ink-45); line-height:1.6; }
+.intro-foot{ display:flex; gap:10px; }
+.intro-foot .btn{ flex:1; justify-content:center; text-align:center; }
+.btn-sm{ padding:8px 14px; font-size:13px; }
+.sheet-head .label{ margin-bottom:2px; }
+.btn:disabled{ opacity:.4; cursor:default; }
+.btn:disabled:active{ transform:none; }
+
+/* ---------- saved products ---------- */
+
+.save-row{ display:flex; gap:8px; margin:14px 0 4px; }
+.save-row input{ flex:1; margin-top:0; }
+.save-row .btn{ flex:none; }
+
+.lib-item{ cursor:pointer; }
+.lib-item .item-ico{ font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; text-align:center; line-height:1.25; padding:4px; }
+.lib-item.is-bad .item-ico{ background:var(--red-10); color:var(--red); }
+.lib-item .item-sub{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 /* ---------- trigger groups ---------- */
 
 .tgroup + .tgroup{ margin-top:14px; }

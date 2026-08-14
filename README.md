@@ -10,7 +10,7 @@ Most dandruff apps are storefronts. This one sells nothing. It does three things
   conditioner built on coconut oil can quietly undo the shampoo you just used. It reads
   position as well as presence. Coconut oil second on a label is a different product
   from coconut oil twenty-second.
-- **Maps the treatment ladder**, including the rungs above the pharmacy shelf that
+- **Maps the treatment ladder**: including the rungs above the pharmacy shelf that
   nobody offers unless you ask for them by name.
 
 Everything stays in your browser's local storage. There is no account, no server, and
@@ -33,7 +33,7 @@ Then visit `http://localhost:8000`.
 ## Deploying to GitHub Pages
 
 1. Push this repository to GitHub.
-2. **Settings → Pages → Source**, choose `Deploy from a branch`.
+2. **Settings → Pages → Source**: choose `Deploy from a branch`.
 3. Pick your branch and the `/ (root)` folder, then save.
 
 The site is plain HTML, CSS and JavaScript, so Pages serves it as-is. The `.nojekyll`

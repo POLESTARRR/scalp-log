@@ -5,20 +5,16 @@
     entries:  'scalplog.entries',
     routine:  'scalplog.routine',
     progress: 'scalplog.progress',
-    seeded:   'scalplog.seeded'
+    seeded:   'scalplog.seeded',
+    profile:  'scalplog.profile',
+    products: 'scalplog.products'
   };
 
   var entries = read(STORE.entries, []);
   var routine = read(STORE.routine, {});
   var progress = read(STORE.progress, {});
-
-  /* First run only: mark the treatments already known to have failed, so the
-     ladder opens on what is left instead of asking you to retype your history. */
-  if (!read(STORE.seeded, false)) {
-    PRESEED_FAILED.forEach(function (id) { progress[id] = 'failed'; });
-    write(STORE.progress, progress);
-    write(STORE.seeded, true);
-  }
+  var profile = read(STORE.profile, null);
+  var products = read(STORE.products, []);
 
   var selectedDay = today();
 
@@ -69,6 +65,104 @@
     el.hidden = false;
     clearTimeout(toast._t);
     toast._t = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+
+  /* ------------------------------------------------------------------
+     First run questions
+
+     The point of these is to stop guessing. The ladder used to open with
+     nine treatments pre marked as failed based on an assumption about the
+     user's history, which is worse than showing nothing when the guess is
+     wrong. Answers here write real history instead.
+  ------------------------------------------------------------------ */
+
+  var introStep = 0;
+  var introAnswers = {};
+
+  function needsIntro() { return !profile && !read(STORE.seeded, false); }
+
+  /* The "did any help" question offers back whatever was ticked as tried,
+     so it has no fixed option list of its own. */
+  function optionsFor(q) {
+    if (!q.dependsOn) return q.options;
+    return (introAnswers[q.dependsOn] || []).map(function (v) { return { value: v }; });
+  }
+
+  function openIntro(fromSettings) {
+    introStep = 0;
+    introAnswers = fromSettings && profile ? JSON.parse(JSON.stringify(profile.answers || {})) : {};
+    $('#scrim').hidden = false;
+    $('#intro').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderIntro();
+  }
+
+  function closeIntro() {
+    $('#scrim').hidden = true;
+    $('#intro').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function renderIntro() {
+    var q = ONBOARDING[introStep];
+    var opts = optionsFor(q);
+    var chosen = introAnswers[q.id] || [];
+
+    $('#introStep').textContent = 'Question ' + (introStep + 1) + ' of ' + ONBOARDING.length;
+    $('#introTitle').textContent = q.title;
+    $('#introHelp').textContent = q.help;
+    $('#introBack').disabled = introStep === 0;
+    $('#introNext').textContent = introStep === ONBOARDING.length - 1 ? 'Done' : 'Next';
+
+    var empty = !opts.length;
+    $('#introEmpty').hidden = !empty;
+    $('#introOptions').innerHTML = empty ? '' : opts.map(function (o) {
+      var on = chosen.indexOf(o.value) !== -1;
+      return '<label class="chip"><input type="' + (q.kind === 'single' ? 'radio' : 'checkbox') +
+        '" name="intro-' + q.id + '" value="' + esc(o.value) + '"' + (on ? ' checked' : '') +
+        '><span>' + esc(o.value) + '</span></label>';
+    }).join('');
+  }
+
+  function captureIntro() {
+    var q = ONBOARDING[introStep];
+    introAnswers[q.id] = $$('#introOptions input:checked').map(function (i) { return i.value; });
+  }
+
+  /* Answers win over the fallback list. Anything ticked as tried is marked
+     failed, then anything ticked as helping is promoted to using now. */
+  function applyIntro() {
+    var tried = introAnswers.tried || [];
+    var helped = introAnswers.helped || [];
+    var byValue = {};
+    ONBOARDING[0].options.forEach(function (o) { byValue[o.value] = o.ladder; });
+
+    progress = {};
+    tried.forEach(function (v) { if (byValue[v]) progress[byValue[v]] = 'failed'; });
+    helped.forEach(function (v) { if (byValue[v]) progress[byValue[v]] = 'current'; });
+
+    profile = { answers: introAnswers, savedAt: new Date().toISOString() };
+    write(STORE.progress, progress);
+    write(STORE.profile, profile);
+    write(STORE.seeded, true);
+
+    closeIntro();
+    renderLadder();
+    renderAll();
+    toast('Set up from your answers');
+  }
+
+  /* Skipping falls back to the old assumed list, but only if nothing has been
+     marked off yet, so a skip never overwrites real history. */
+  function skipIntro() {
+    if (!Object.keys(progress).length) {
+      PRESEED_FAILED.forEach(function (id) { progress[id] = 'failed'; });
+      write(STORE.progress, progress);
+    }
+    write(STORE.seeded, true);
+    closeIntro();
+    renderLadder();
+    toast('Skipped. Mark treatments off in Plan whenever you like');
   }
 
   /* ------------------------------------------------------------------
@@ -603,6 +697,69 @@
     }).join('');
   }
 
+  /* ------------------------------------------------------------------
+     Saved products
+
+     Without a barcode there is nothing to look a product up by, so the
+     answer to retyping a label is to type it once and keep it.
+  ------------------------------------------------------------------ */
+
+  function saveProduct() {
+    var name = $('#saveName').value.trim();
+    var text = $('#scanInput').value.trim();
+    if (!text) return;
+    if (!name) { toast('Give it a name first'); $('#saveName').focus(); return; }
+
+    var hits = scan(text);
+    var feeders = hits.filter(function (h) { return h.ing.cat === 'feeder'; });
+    var worst = feeders.filter(function (h) { return weight(h) === 'high'; }).length;
+
+    products = products.filter(function (p) { return p.name.toLowerCase() !== name.toLowerCase(); });
+    products.push({
+      id: String(Date.now()),
+      name: name,
+      list: text,
+      feeders: feeders.length,
+      bad: worst > 0
+    });
+    write(STORE.products, products);
+
+    $('#saveName').value = '';
+    renderLibrary();
+    renderProductOptions();
+    toast('Saved to your products');
+  }
+
+  function renderLibrary() {
+    var block = $('#libraryBlock');
+    if (!products.length) {
+      block.hidden = true;
+      $('#libraryList').innerHTML = '';
+      return;
+    }
+    block.hidden = false;
+
+    $('#libraryCount').textContent = products.length + (products.length === 1 ? ' product' : ' products');
+    $('#libraryList').innerHTML = products.slice().reverse().map(function (p) {
+      var mark = p.feeders ? p.feeders + (p.feeders === 1 ? ' feeder' : ' feeders') : 'clear';
+      return '<li class="item lib-item' + (p.bad ? ' is-bad' : '') + '" data-open="' + p.id + '">' +
+        '<span class="item-ico">' + esc(mark) + '</span>' +
+        '<div class="item-body"><p class="item-title">' + esc(p.name) + '</p>' +
+        '<p class="item-sub">' + esc(p.list.slice(0, 70)) + '</p></div>' +
+        '<button class="check" data-forget="' + p.id + '" type="button" aria-label="Remove saved product">&times;</button>' +
+      '</li>';
+    }).join('');
+  }
+
+  function openSaved(id) {
+    var p = products.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    $('#scanInput').value = p.list;
+    $('#saveName').value = p.name;
+    renderScan();
+    $('#scanVerdict').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
   function renderReference(filter) {
     var q = (filter || '').trim().toLowerCase();
     var list = INGREDIENTS.filter(function (ing) {
@@ -789,16 +946,21 @@
   }
 
   /* Presets first, then anything the user has actually typed before. */
+  /* Saved products first, then names already logged, then the presets. Putting
+     scanned products at the top is what makes the scanner and the tracker
+     settle on one name per bottle. */
   function knownProducts() {
     var seen = {};
     var list = [];
-    entries.forEach(function (e) {
-      var name = (e.product || '').trim();
-      if (name && !seen[name.toLowerCase()]) { seen[name.toLowerCase()] = 1; list.push(name); }
-    });
-    PRODUCT_PRESETS.forEach(function (name) {
-      if (!seen[name.toLowerCase()]) { seen[name.toLowerCase()] = 1; list.push(name); }
-    });
+    var add = function (name) {
+      name = (name || '').trim();
+      if (!name || seen[name.toLowerCase()]) return;
+      seen[name.toLowerCase()] = 1;
+      list.push(name);
+    };
+    products.slice().reverse().forEach(function (p) { add(p.name); });
+    entries.forEach(function (e) { add(e.product); });
+    PRODUCT_PRESETS.forEach(add);
     return list;
   }
 
@@ -811,6 +973,9 @@
     sorted().reverse().forEach(function (e) {
       var name = (e.product || '').trim();
       if (name && recent.indexOf(name) === -1 && recent.length < 6) recent.push(name);
+    });
+    products.slice().reverse().forEach(function (p) {
+      if (recent.indexOf(p.name) === -1 && recent.length < 6) recent.push(p.name);
     });
     var picks = recent.length ? recent : PRODUCT_PRESETS.slice(0, 6);
 
@@ -995,12 +1160,17 @@
 
     $('#fab').addEventListener('click', openSheet);
     $('#sheetClose').addEventListener('click', closeSheet);
-    $('#scrim').addEventListener('click', closeSheet);
+    /* The scrim is shared. The questions are deliberately not dismissable by
+       tapping it, since there is an explicit Skip button for that. */
+    $('#scrim').addEventListener('click', function () {
+      if ($('#intro').hidden) closeSheet();
+    });
     $('#saveEntry').addEventListener('click', saveEntry);
 
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       if (!$('#lightbox').hidden) closeLightbox();
+      else if (!$('#intro').hidden) skipIntro();
       else if (!$('#sheet').hidden) closeSheet();
     });
 
@@ -1084,22 +1254,62 @@
 
     $('#exportBtn').addEventListener('click', exportCsv);
     $('#wipeBtn').addEventListener('click', function () {
-      if (!entries.length) { toast('Nothing stored'); return; }
-      if (!confirm('Delete every entry and photo on this device? Export first if you want a copy. This cannot be undone.')) return;
+      if (!entries.length && !products.length) { toast('Nothing stored'); return; }
+      if (!confirm('Delete every entry, photo and saved product on this device? Export first if you want a copy. This cannot be undone.')) return;
       entries = [];
       routine = {};
+      products = [];
       write(STORE.entries, entries);
       write(STORE.routine, routine);
+      write(STORE.products, products);
       wipePhotos().catch(function () {});
+      renderLibrary();
       renderAll();
       toast('All data deleted');
     });
 
-    $('#streakBtn').addEventListener('click', function () { switchView('trends'); });
+    /* The avatar reopens the questions, so nothing answered on day one is
+       locked in when the picture changes. */
+    $('#streakBtn').addEventListener('click', function () { openIntro(true); });
+
+    $('#introSkip').addEventListener('click', skipIntro);
+    $('#introBack').addEventListener('click', function () {
+      captureIntro();
+      if (introStep > 0) { introStep--; renderIntro(); }
+    });
+    $('#introNext').addEventListener('click', function () {
+      captureIntro();
+      if (introStep < ONBOARDING.length - 1) { introStep++; renderIntro(); }
+      else applyIntro();
+    });
+
+    $('#saveProduct').addEventListener('click', saveProduct);
+    $('#saveName').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveProduct(); }
+    });
+
+    $('#libraryList').addEventListener('click', function (e) {
+      var forget = e.target.closest('[data-forget]');
+      if (forget) {
+        products = products.filter(function (p) { return p.id !== forget.dataset.forget; });
+        write(STORE.products, products);
+        renderLibrary();
+        renderProductOptions();
+        toast('Removed');
+        return;
+      }
+      var open = e.target.closest('[data-open]');
+      if (open) openSaved(open.dataset.open);
+    });
 
     renderLadder();
     renderReference('');
+    renderLibrary();
     renderAll();
+
+    /* Ask before assuming. If the questions are skipped the old fallback
+       list still applies, so the ladder is never empty. */
+    if (needsIntro()) openIntro(false);
   }
 
   document.addEventListener('DOMContentLoaded', init);

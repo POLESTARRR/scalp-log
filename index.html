@@ -95,9 +95,23 @@
 
     <div id="scanResult" hidden>
       <div class="verdict" id="scanVerdict"></div>
+      <div class="save-row">
+        <input type="text" id="saveName" placeholder="Name it to save this scan" autocomplete="off">
+        <button class="btn btn-ghost" id="saveProduct" type="button">Save</button>
+      </div>
       <div id="scanInteractions"></div>
       <div id="scanGroups"></div>
     </div>
+
+    <section class="block" id="libraryBlock" hidden>
+      <div class="block-head">
+        <h3 class="block-title">Saved products</h3>
+        <span class="label" id="libraryCount"></span>
+      </div>
+      <ul class="feed" id="libraryList"></ul>
+      <p class="fineprint">Tap one to check it again. Saved names also appear in the log sheet, so the
+        tracker and the scanner end up using the same words for the same bottle.</p>
+    </section>
 
     <section class="block">
       <div class="block-head">
@@ -223,6 +237,28 @@
 
     <div class="sheet-foot">
       <button class="btn btn-primary btn-block" id="saveEntry" type="button">Save entry</button>
+    </div>
+  </section>
+
+  <!-- ================= FIRST RUN QUESTIONS ================= -->
+  <section class="sheet" id="intro" hidden aria-modal="true" role="dialog" aria-labelledby="introTitle">
+    <div class="sheet-grab" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div>
+        <p class="label" id="introStep">Question 1 of 6</p>
+        <h2 id="introTitle">Setting up</h2>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="introSkip" type="button">Skip</button>
+    </div>
+    <div class="sheet-body">
+      <p class="intro-help" id="introHelp"></p>
+      <div class="chips" id="introOptions"></div>
+      <p class="intro-empty" id="introEmpty" hidden>Nothing to pick here, because you did not mark anything as
+        tried. Carry on.</p>
+    </div>
+    <div class="sheet-foot intro-foot">
+      <button class="btn btn-ghost" id="introBack" type="button">Back</button>
+      <button class="btn btn-primary" id="introNext" type="button">Next</button>
     </div>
   </section>
 

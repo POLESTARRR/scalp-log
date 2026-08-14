@@ -526,11 +526,92 @@ const LADDER = [
   }
 ];
 
-/* Seeded on first run from what has already been tried and failed, so the
-   ladder opens showing what is left rather than what is known. */
+/* Fallback only. Used if the first run questions are skipped, so the ladder
+   still opens with something rather than blank. Anything answered in the
+   questions overrides this, because a guess about someone else's history is
+   worse than no guess at all. */
 const PRESEED_FAILED = [
   't1-keto', 't1-zpt', 't1-tar', 't1-sal', 't1-ciclo', 't1-climb',
   't2-keto2', 't3-itra', 't3-fluc'
+];
+
+/* First run questions.
+
+   `ladder` on an option is the id of the rung it marks off, so answering
+   these writes real history into the Plan tab instead of the guesses above.
+   Everything is optional and the whole thing can be reopened later. */
+const ONBOARDING = [
+  {
+    id: 'tried',
+    kind: 'multi',
+    title: 'What have you already tried?',
+    help: 'Tap everything you have used for long enough to judge. This fills in your ladder so it opens on what is left.',
+    options: [
+      { value:'Ketoconazole',      ladder:'t1-keto' },
+      { value:'Zinc pyrithione',   ladder:'t1-zpt' },
+      { value:'Selenium sulfide',  ladder:'t1-selenium' },
+      { value:'Coal tar',          ladder:'t1-tar' },
+      { value:'Salicylic acid',    ladder:'t1-sal' },
+      { value:'Ciclopirox',        ladder:'t1-ciclo' },
+      { value:'Piroctone olamine', ladder:'t1-piroc' },
+      { value:'Climbazole',        ladder:'t1-climb' },
+      { value:'Sulfur bar',        ladder:'t1-sulfur' },
+      { value:'Steroid cream',     ladder:'t2-steroid' },
+      { value:'Tacrolimus',        ladder:'t2-calci' },
+      { value:'Roflumilast foam',  ladder:'t2-roflu' },
+      { value:'Oral itraconazole', ladder:'t3-itra' },
+      { value:'Oral fluconazole',  ladder:'t3-fluc' },
+      { value:'Isotretinoin',      ladder:'t3-iso' }
+    ]
+  },
+  {
+    id: 'helped',
+    kind: 'multi',
+    title: 'Did any of those actually help?',
+    help: 'Anything you pick here gets marked as using now rather than did not work. Skip if nothing did.',
+    dependsOn: 'tried'
+  },
+  {
+    id: 'sites',
+    kind: 'multi',
+    title: 'Where is it?',
+    help: 'Face and eyelids change what is sensible, since long term steroids are a worse trade there.',
+    options: [
+      { value:'Scalp' }, { value:'Face' }, { value:'Eyebrows' },
+      { value:'Ears' }, { value:'Chest' }, { value:'Eyelids' }
+    ]
+  },
+  {
+    id: 'duration',
+    kind: 'single',
+    title: 'How long has this been going on?',
+    help: 'Years without resolution is itself clinically relevant. It changes what is reasonable to ask a dermatologist for.',
+    options: [
+      { value:'Under a year' }, { value:'1 to 3 years' },
+      { value:'3 to 10 years' }, { value:'Over 10 years' }
+    ]
+  },
+  {
+    id: 'hair',
+    kind: 'multi',
+    title: 'Using anything for hair loss?',
+    help: 'This decides which combination warnings are worth showing you. Minoxidil in particular interacts with seb derm.',
+    options: [
+      { value:'Minoxidil' }, { value:'Finasteride' }, { value:'Dutasteride' },
+      { value:'A growth serum' }, { value:'Nothing' }
+    ]
+  },
+  {
+    id: 'focus',
+    kind: 'single',
+    title: 'What do you want out of the log?',
+    help: 'Only changes what the app nudges you toward. You can do both regardless.',
+    options: [
+      { value:'Find my triggers' },
+      { value:'Test whether a product works' },
+      { value:'Keep a record for my doctor' }
+    ]
+  }
 ];
 
 const STATUS = {
