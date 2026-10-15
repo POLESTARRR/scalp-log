@@ -17,3 +17,6 @@ All ingredient checking is client-side ('it never leaves this device'), ensuring
 
 ## 2026-10-15
 The scan explainer states that Malassezia lacks fatty acid synthase genes and scavenges lipids from skin, making coconut oil-based conditioners counterproductive.
+
+## 2026-10-15
+A CSV export button allows data portability, with a disclaimer that everything lives in browser localStorage and clearing site data loses it.
