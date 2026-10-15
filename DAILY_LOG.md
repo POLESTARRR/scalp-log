@@ -14,3 +14,6 @@ The log sheet uses range sliders for severity (0-10: Clear to Severe) and itch (
 
 ## 2026-10-13
 All ingredient checking is client-side ('it never leaves this device'), ensuring privacy for sensitive health data.
+
+## 2026-10-15
+The scan explainer states that Malassezia lacks fatty acid synthase genes and scavenges lipids from skin, making coconut oil-based conditioners counterproductive.
