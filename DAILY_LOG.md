@@ -20,3 +20,6 @@ The scan explainer states that Malassezia lacks fatty acid synthase genes and sc
 
 ## 2026-10-15
 A CSV export button allows data portability, with a disclaimer that everything lives in browser localStorage and clearing site data loses it.
+
+## 2026-10-21
+The `index.html` is a single-page app for tracking treatment-resistant seborrheic dermatitis with local-only data storage.
