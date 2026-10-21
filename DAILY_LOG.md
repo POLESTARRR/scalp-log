@@ -23,3 +23,6 @@ A CSV export button allows data portability, with a disclaimer that everything l
 
 ## 2026-10-21
 The `index.html` is a single-page app for tracking treatment-resistant seborrheic dermatitis with local-only data storage.
+
+## 2026-10-21
+The 'Trends' view shows a severity line chart (SVG with viewBox, last 30 entries), pattern analysis, progress photos (filmstrip, oldest first), and full history.
