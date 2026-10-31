@@ -26,3 +26,6 @@ The `index.html` is a single-page app for tracking treatment-resistant seborrhei
 
 ## 2026-10-21
 The 'Trends' view shows a severity line chart (SVG with viewBox, last 30 entries), pattern analysis, progress photos (filmstrip, oldest first), and full history.
+
+## 2026-10-31
+The app uses a four-view tabbed structure: Today, Plan, Scan, and Trends, with a bottom navigation bar and floating action button.
