@@ -32,3 +32,6 @@ The app uses a four-view tabbed structure: Today, Plan, Scan, and Trends, with a
 
 ## 2026-10-31
 The hero card shows severity status with icon, pill label ('Not logged'), title, and contextual subtitle prompting the user to log.
+
+## 2026-10-31
+Daily routine tracking displays progress as '0 of 4' completed items in a feed list.
