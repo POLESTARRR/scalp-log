@@ -29,3 +29,6 @@ The 'Trends' view shows a severity line chart (SVG with viewBox, last 30 entries
 
 ## 2026-10-31
 The app uses a four-view tabbed structure: Today, Plan, Scan, and Trends, with a bottom navigation bar and floating action button.
+
+## 2026-10-31
+The hero card shows severity status with icon, pill label ('Not logged'), title, and contextual subtitle prompting the user to log.
