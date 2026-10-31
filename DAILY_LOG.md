@@ -35,3 +35,6 @@ The hero card shows severity status with icon, pill label ('Not logged'), title,
 
 ## 2026-10-31
 Daily routine tracking displays progress as '0 of 4' completed items in a feed list.
+
+## 2026-10-31
+A 'day strip' component displays recent days for quick navigation to past entries.
