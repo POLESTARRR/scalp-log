@@ -38,3 +38,6 @@ Daily routine tracking displays progress as '0 of 4' completed items in a feed l
 
 ## 2026-10-31
 A 'day strip' component displays recent days for quick navigation to past entries.
+
+## 2026-11-03
+Saved products from scans auto-populate in the log sheet's product field, unifying vocabulary across tracker and scanner.
